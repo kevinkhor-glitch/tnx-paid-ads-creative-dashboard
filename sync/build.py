@@ -441,6 +441,26 @@ print('meta', len(meta_rows), 'tt', len(tt_rows), 'camps', len(crow), 'issues', 
 print(collections.Counter(x[3] for x in issues))
 print(collections.Counter((r['group'], market_label(r['country'], r['language'])) for r in meta_rows if r['status'] == 'ACTIVE'))
 
+# ---------- Links (Notion + Drive folder), typed by the team in the TNX Creative Links sheet ----------
+# sync/raw/links.json: [{"cr": "CR81_2", "market": "MY-CN", "ad_id": "", "notion": "https://...", "drive": "https://..."}]
+# Match order: Ad ID, then CR code + market, then CR code alone (rows with no market).
+def _norm(x):
+    return (x or '').strip()
+links = json.load(open(D + 'links.json')) if os.path.exists(D + 'links.json') else []
+by_ad, by_crm, by_cr = {}, {}, {}
+for L in links:
+    v = {'notion': _norm(L.get('notion')), 'drive': _norm(L.get('drive'))}
+    if not (v['notion'] or v['drive']):
+        continue
+    if _norm(L.get('ad_id')):
+        by_ad[_norm(L['ad_id'])] = v
+    elif _norm(L.get('cr')) and _norm(L.get('market')):
+        by_crm[(_norm(L['cr']).upper(), _norm(L['market']).upper())] = v
+    elif _norm(L.get('cr')):
+        by_cr[_norm(L['cr']).upper()] = v
+def link_for(ad_id, cr, mk):
+    return by_ad.get(ad_id) or by_crm.get(((cr or '').upper(), mk)) or by_cr.get((cr or '').upper()) or {}
+
 # ---------- Dashboard data ----------
 import os
 def iso(d):
@@ -462,6 +482,13 @@ for r in tt_rows:
         cr=r['created'].isoformat(), ld=iso(r['name_date']), b=r['batch'], fw=r['framework'], f=r['fmt'],
         hk=r['hook'], an=r['angle'], c=r['cr'], h='', t=r['ad_text'], cta='', url='', img='', ct=r['tt_format'],
         cid=r['campaign_id'], cn=r['campaign'], n=r['ad_name'], files=r['files'], am=''))
+n_linked = 0
+for a in dash:
+    mk = f"{a['mk']}-{a['lg']}" if a['lg'] else a['mk']
+    lk = link_for(a['id'], a['c'], mk)
+    a['nl'] = lk.get('notion', ''); a['dl'] = lk.get('drive', '')
+    n_linked += bool(a['nl'] or a['dl'])
+print('ads with links', n_linked)
 out_d = {'synced': RUN_AT, 'ads': dash,
          'issues': [dict(id=i[0], p=i[1], n=i[2], issue=i[3], detail=i[4]) for i in issues]}
 import os

@@ -48,6 +48,10 @@ main{padding:22px 32px 60px}
 .visual .fmt{position:absolute;left:0;top:0;background:var(--blue);color:var(--white);font-size:10px;padding:3px 8px;text-transform:uppercase;letter-spacing:.06em;z-index:2}
 .visual .play{position:absolute;z-index:2;width:56px;height:56px;border-radius:50%;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;text-decoration:none}
 .visual .play::after{content:"";border-left:18px solid #fff;border-top:11px solid transparent;border-bottom:11px solid transparent;margin-left:5px}
+.visual .drivelink{position:absolute;left:0;right:0;bottom:0;z-index:3;background:rgba(5,11,64,.88);color:#fff;text-align:center;padding:9px 8px;font-size:12px;font-weight:500;text-decoration:none}
+.visual .drivelink:hover{background:var(--blue)}
+.foot a.nlink{color:var(--black)}
+.foot .missing{color:var(--gray);font-size:11px}
 .visual .none{color:var(--dawn);font-size:12px;text-align:center;padding:12px}
 .details{display:flex;flex-direction:column;min-width:0}
 .meta{padding:14px 16px;border-bottom:1px solid var(--line)}
@@ -101,6 +105,7 @@ td.n{word-break:break-all;color:var(--muted);max-width:520px}
   <select id="fTheme"></select>
   <select id="fFormat"></select>
   <select id="fBatch"></select>
+  <select id="fLinks"><option value="">Links: all</option><option value="has">Has Notion/Drive</option><option value="missing">Missing links</option></select>
   <select id="fSort">
     <option value="new">Newest first</option>
     <option value="old">Oldest first</option>
@@ -153,9 +158,9 @@ function init(){
 function bind(){
   $('platChips').onclick = e => { const p = e.target.dataset.p; if(!p) return;
     plat.has(p) ? plat.delete(p) : plat.add(p); e.target.classList.toggle('on'); shown = PAGE; render(); };
-  ['q','fStatus','fGroup','fMarket','fTheme','fFormat','fBatch','fSort'].forEach(id =>
+  ['q','fStatus','fGroup','fMarket','fTheme','fFormat','fBatch','fLinks','fSort'].forEach(id =>
     $(id).addEventListener(id === 'q' ? 'input' : 'change', () => { shown = PAGE; render(); }));
-  $('reset').onclick = () => { ['q','fStatus','fGroup','fMarket','fTheme','fFormat','fBatch'].forEach(id => $(id).value = '');
+  $('reset').onclick = () => { ['q','fStatus','fGroup','fMarket','fTheme','fFormat','fBatch','fLinks'].forEach(id => $(id).value = '');
     $('fSort').value = 'new'; plat.clear(); document.querySelectorAll('.chip').forEach(c => c.classList.remove('on')); shown = PAGE; render(); };
   $('more').onclick = () => { shown += PAGE; render(); };
   document.querySelectorAll('.tab').forEach(t => t.onclick = () => {
@@ -173,11 +178,11 @@ function bind(){
 
 function filtered(){
   const q = $('q').value.trim().toLowerCase(), st = $('fStatus').value, g = $('fGroup').value, m = $('fMarket').value,
-        th = $('fTheme').value, f = $('fFormat').value, b = $('fBatch').value;
+        th = $('fTheme').value, f = $('fFormat').value, b = $('fBatch').value, lk = $('fLinks').value;
   let r = DATA.ads.filter(a =>
     (!plat.size || plat.has(a.p)) &&
     (!st || (st === 'Active') === isActive(a)) &&
-    (!g || a.g === g) && (!m || mkt(a) === m) && (!th || a.th === th) && (!f || a.f === f) && (!b || a.b === b) &&
+    (!lk || (lk === 'has') === !!(a.nl || a.dl)) && (!g || a.g === g) && (!m || mkt(a) === m) && (!th || a.th === th) && (!f || a.f === f) && (!b || a.b === b) &&
     (!q || [a.c, a.an, a.hk, a.b, a.h, a.t, a.n, a.th, a.fw].join(' ').toLowerCase().includes(q)));
   const s = $('fSort').value;
   const crNum = c => { const m = /CR(\d+)(?:_(\d+))?/.exec(c || ''); return m ? (+m[1]) * 1000 + (+(m[2] || 0)) : 1e9; };
@@ -188,9 +193,10 @@ function filtered(){
 function visual(a){
   const label = `<span class="fmt">${esc(a.v ? 'video' : (a.f || a.ct || ''))}</span>`;
   const play = a.vu ? `<a class="play" href="${esc(a.vu)}" target="_blank" rel="noopener" title="Watch video"></a>` : '';
-  if(!a.img) return `<div class="visual">${label}<div class="none">${a.p === 'tt' ? 'TikTok Smart+<br>preview not available' : 'No preview'}</div></div>`;
+  const drive = a.dl ? `<a class="drivelink" href="${esc(a.dl)}" target="_blank" rel="noopener" title="Open final output in Google Drive">Open in Drive ↗</a>` : '';
+  if(!a.img) return `<div class="visual">${label}<div class="none">${a.p === 'tt' ? 'TikTok Smart+<br>preview not available' : 'No preview'}</div>${drive}</div>`;
   const low = a.lr ? ' lowres' : '';
-  return `<div class="visual${a.v ? ' video' : ''}${low}">${label}<img loading="lazy" src="${esc(a.img)}" alt="" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'none',innerHTML:'No preview'}))">${play}</div>`;
+  return `<div class="visual${a.v ? ' video' : ''}${low}">${label}<img loading="lazy" src="${esc(a.img)}" alt="" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'none',innerHTML:'No preview'}))">${play}${drive}</div>`;
 }
 
 function card(a){
@@ -211,6 +217,9 @@ function card(a){
         ${(a.t || '').length > 220 ? '<button class="more">Show full copy</button>' : ''}
       </div>
       <div class="foot">
+        ${a.nl ? `<a class="nlink" href="${esc(a.nl)}" target="_blank" rel="noopener">Notion brief</a>` : ''}
+        ${a.dl ? `<a href="${esc(a.dl)}" target="_blank" rel="noopener">Drive folder</a>` : ''}
+        ${!a.nl && !a.dl ? '<span class="missing">No Notion / Drive link yet</span>' : ''}
         ${a.am ? `<a href="${esc(a.am)}" target="_blank" rel="noopener">Ads Manager</a>` : ''}
         ${a.vu ? `<a href="${esc(a.vu)}" target="_blank" rel="noopener">Watch video</a>` : ''}
         ${a.url && /^https?:/.test(a.url) && !/fb\.me\/?$/.test(a.url) ? `<a href="${esc(a.url)}" target="_blank" rel="noopener">Landing page</a>` : ''}
