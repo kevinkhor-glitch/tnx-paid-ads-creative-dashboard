@@ -36,6 +36,7 @@ h1 span{color:var(--blue);background:var(--white);padding:0 8px;margin-left:8px;
 .filters input[type=search]{flex:1 1 260px;min-width:220px;padding:9px 12px;border:1px solid var(--line);outline:none}
 .filters input[type=search]:focus{border-color:var(--blue)}
 .filters select{padding:8px 10px;border:1px solid var(--line);background:var(--white);max-width:220px}
+.filters #fCampaign{max-width:340px}
 .chips{display:flex;gap:6px}
 .chip{border:1px solid var(--line);background:var(--white);padding:7px 12px;cursor:pointer}
 .chip.on{background:var(--blue);border-color:var(--blue);color:var(--white)}
@@ -126,11 +127,12 @@ td.n{word-break:break-all;color:var(--muted);max-width:520px}
 </header>
 
 <section class="filters" id="filters">
-  <input type="search" id="q" placeholder="Search CR code, angle, batch, copy, ad name…">
+  <input type="search" id="q" placeholder="Search CR code, angle, campaign, copy…">
   <div class="chips" id="platChips"></div>
   <select id="fStatus"></select>
   <select id="fGroup"></select>
   <select id="fMarket"></select>
+  <select id="fCampaign"></select>
   <select id="fTheme"></select>
   <select id="fFormat"></select>
   <select id="fBatch"></select>
@@ -185,6 +187,15 @@ function init(){
   fillSelect($('fGroup'), 'Group', uniq(A.map(a => a.g)));
   fillSelect($('fMarket'), 'Market', uniq(A.map(mkt)));
   fillSelect($('fTheme'), 'Theme', uniq(A.map(a => a.th)));
+  // Campaigns: active ones first, then newest; label drops the platform/brand prefix
+  const camps = {};
+  A.forEach(a => { const c = camps[a.cid] = camps[a.cid] || {id: a.cid, name: a.cn, p: a.p === 'tt' ? 'TikTok' : 'Meta', active: false, last: ''};
+    c.active = c.active || isActive(a); if(a.cr > c.last) c.last = a.cr; });
+  const short = n => n.replace(/^(fb|tt|ig)\/tnx\//, '');
+  const cl = Object.values(camps).sort((x, y) => (y.active - x.active) || y.last.localeCompare(x.last));
+  $('fCampaign').innerHTML = '<option value="">Campaign: all</option>' +
+    ['Active', 'Not active'].map(grp => `<optgroup label="${grp} campaigns">` +
+      cl.filter(c => c.active === (grp === 'Active')).map(c => `<option value="${esc(c.id)}">${esc(c.p + ' · ' + short(c.name))}</option>`).join('') + '</optgroup>').join('');
   fillSelect($('fFormat'), 'Format', uniq(A.map(a => a.f)));
   fillSelect($('fBatch'), 'Batch', uniq(A.map(a => a.b)));
   $('fStatus').value = 'Active';
@@ -194,9 +205,9 @@ function init(){
 function bind(){
   $('platChips').onclick = e => { const p = e.target.dataset.p; if(!p) return;
     plat.has(p) ? plat.delete(p) : plat.add(p); e.target.classList.toggle('on'); shown = PAGE; render(); };
-  ['q','fStatus','fGroup','fMarket','fTheme','fFormat','fBatch','fLinks','fSort'].forEach(id =>
+  ['q','fStatus','fGroup','fMarket','fCampaign','fTheme','fFormat','fBatch','fLinks','fSort'].forEach(id =>
     $(id).addEventListener(id === 'q' ? 'input' : 'change', () => { shown = PAGE; render(); }));
-  $('reset').onclick = () => { ['q','fStatus','fGroup','fMarket','fTheme','fFormat','fBatch','fLinks'].forEach(id => $(id).value = '');
+  $('reset').onclick = () => { ['q','fStatus','fGroup','fMarket','fCampaign','fTheme','fFormat','fBatch','fLinks'].forEach(id => $(id).value = '');
     $('fSort').value = 'new'; plat.clear(); document.querySelectorAll('.chip').forEach(c => c.classList.remove('on')); shown = PAGE; render(); };
   $('more').onclick = () => { shown += PAGE; render(); };
   $('tlScale').onclick = e => { const v = e.target.dataset.s; if(!v) return; tlScale = v;
@@ -220,12 +231,12 @@ function bind(){
 
 function filtered(){
   const q = $('q').value.trim().toLowerCase(), st = $('fStatus').value, g = $('fGroup').value, m = $('fMarket').value,
-        th = $('fTheme').value, f = $('fFormat').value, b = $('fBatch').value, lk = $('fLinks').value;
+        th = $('fTheme').value, f = $('fFormat').value, b = $('fBatch').value, lk = $('fLinks').value, cp = $('fCampaign').value;
   let r = DATA.ads.filter(a =>
     (!plat.size || plat.has(a.p)) &&
     (!st || (st === 'Active') === isActive(a)) &&
-    (!lk || (lk === 'has') === !!(a.nl || a.dl)) && (!g || a.g === g) && (!m || mkt(a) === m) && (!th || a.th === th) && (!f || a.f === f) && (!b || a.b === b) &&
-    (!q || [a.c, a.an, a.hk, a.b, a.h, a.t, a.n, a.th, a.fw].join(' ').toLowerCase().includes(q)));
+    (!lk || (lk === 'has') === !!(a.nl || a.dl)) && (!cp || a.cid === cp) && (!g || a.g === g) && (!m || mkt(a) === m) && (!th || a.th === th) && (!f || a.f === f) && (!b || a.b === b) &&
+    (!q || [a.c, a.an, a.hk, a.b, a.h, a.t, a.n, a.th, a.fw, a.cn].join(' ').toLowerCase().includes(q)));
   const s = $('fSort').value;
   const crNum = c => { const m = /CR(\d+)(?:_(\d+))?/.exec(c || ''); return m ? (+m[1]) * 1000 + (+(m[2] || 0)) : 1e9; };
   r.sort(s === 'old' ? (x, y) => x.cr.localeCompare(y.cr) : s === 'cr' ? (x, y) => crNum(x.c) - crNum(y.c) : (x, y) => y.cr.localeCompare(x.cr));
@@ -252,6 +263,7 @@ function card(a){
         <div class="code">${esc(a.c || 'No CR code')}<span class="pill plat">${a.p}</span><span class="pill ${isActive(a) ? 'active' : ''}">${esc(a.st)}</span></div>
         <div class="tags">${tags}</div>
         ${angle ? `<div class="angle">${esc(angle)}</div>` : ''}${files}
+        <div class="launch">Campaign <b title="${esc(a.cn)}">${esc(a.cn.replace(/^(fb|tt|ig)\/tnx\//, ''))}</b></div>
         <div class="launch" title="When the ad was created in Ads Manager (Malaysia time)">Launched <b>${fmtTs(a.ts)}</b></div>
       </div>
       <div class="body">
