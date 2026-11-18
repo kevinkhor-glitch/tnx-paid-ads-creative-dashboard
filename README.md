@@ -16,3 +16,7 @@ Note: GitHub Pages sites are public to anyone with the link unless the organizat
 ## Image previews
 
 Meta's image links expire within days, so each creative's image is saved in `images/<creative_id>.jpg` at sync time and the page uses those copies. Static ads are saved at up to 640px. Meta only provides 160px frames for videos, so video previews are low resolution; use the "Watch video" link.
+
+## Updating
+
+See `SYNC.md`. Scripts are in `sync/`.
