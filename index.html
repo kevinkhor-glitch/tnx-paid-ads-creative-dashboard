@@ -101,8 +101,9 @@ td.n{word-break:break-all;color:var(--muted);max-width:520px}
 .tl-row .c{font-weight:600}
 .tl-row .a{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tl-row .lk a{margin-right:8px;text-decoration:none;font-weight:500}
-.launch{color:var(--muted);font-size:12px;margin-top:6px}
-.launch b{color:var(--black);font-weight:600}
+.facts{display:grid;grid-template-columns:78px 1fr;gap:5px 10px;margin:10px 0 0;padding:9px 12px;background:var(--bg);border-left:3px solid var(--blue)}
+.facts dt{font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);padding-top:2px}
+.facts dd{margin:0;font-size:12.5px;font-weight:500;color:var(--black);overflow-wrap:break-word;line-height:1.4}
 .totop{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(16px);z-index:20;background:var(--black);color:var(--white);border:2px solid var(--blue);padding:11px 22px;font-weight:500;font-size:13px;cursor:pointer;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;box-shadow:0 6px 18px rgba(5,11,64,.25)}
 .totop.show{opacity:1;pointer-events:auto;transform:translateX(-50%) translateY(0)}
 .totop:hover{background:var(--blue)}
@@ -255,16 +256,19 @@ function visual(a){
 function card(a){
   const tags = [mkt(a), a.g, a.th, a.de, a.b].filter(Boolean).map(t => `<span class="tag">${esc(t)}</span>`).join('');
   const angle = [a.fw, a.hk, a.an].filter(Boolean).join(' · ');
-  const files = a.files ? `<div class="angle">Creatives in this ad: ${esc(a.files.split('\n').length)}</div>` : '';
+  const nCre = a.files ? a.files.split('\n').length : 0;
   return `<article class="card">
     ${visual(a)}
     <div class="details">
       <div class="meta">
         <div class="code">${esc(a.c || 'No CR code')}<span class="pill plat">${a.p}</span><span class="pill ${isActive(a) ? 'active' : ''}">${esc(a.st)}</span></div>
         <div class="tags">${tags}</div>
-        ${angle ? `<div class="angle">${esc(angle)}</div>` : ''}${files}
-        <div class="launch">Campaign <b title="${esc(a.cn)}">${esc(a.cn.replace(/^(fb|tt|ig)\/tnx\//, ''))}</b></div>
-        <div class="launch" title="When the ad was created in Ads Manager (Malaysia time)">Launched <b>${fmtTs(a.ts)}</b></div>
+        ${angle ? `<div class="angle">${esc(angle)}</div>` : ''}
+        <dl class="facts">
+          <dt>Launched</dt><dd title="When the ad was created in Ads Manager (Malaysia time)">${fmtTs(a.ts)}</dd>
+          <dt>Campaign</dt><dd title="${esc(a.cn)}">${esc(a.cn.replace(/^(fb|tt|ig)\/tnx\//, '')).replace(/\//g, '/<wbr>')}</dd>
+          ${nCre ? `<dt>Creatives</dt><dd>${nCre} in this ad</dd>` : ''}
+        </dl>
       </div>
       <div class="body">
         ${a.h ? `<p class="hl">${esc(a.h)}</p>` : ''}
