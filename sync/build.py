@@ -160,6 +160,15 @@ for a in ads:
     vinfo = vids.get(vid or '', {})
     img = c.get('image_url') or vinfo.get('pic') or c.get('thumbnail_url') or ''
     video_url = ('https://www.facebook.com' + vinfo['perm']) if vinfo.get('perm') else ''
+    # Creatives in this ad: carousel = number of cards; flexible (non-placement) = number of
+    # images + videos; placement-size variants of one creative and single image/video = 1.
+    kids = c.get('child_attachments') or []
+    if kids:
+        n_cre = len(kids)
+    elif afs and afs.get('optimization_type') != 'PLACEMENT':
+        n_cre = max(1, len(afs.get('images') or []) + len(afs.get('videos') or []))
+    else:
+        n_cre = 1
     meta_rows.append(dict(
         ad_id=a['id'], platform=p['platform'], country=cp['country'] or p['country'],
         language=cp['language'] or p['language'], group=camp_group(cp['objective']),
@@ -170,7 +179,7 @@ for a in ads:
         batch=p['batch'], framework=p['framework'], fmt=p['fmt'], hook=p['hook'], angle=p['angle'],
         cr=p['cr'], targeting=p['targeting'], creative_id=a['creative_id'],
         creative_type=c.get('object_type', ''), flexible='Yes' if afs else 'No',
-        headline=title, primary=body, cta=cta, link=link, img=img, video_url=video_url, is_video=bool(vid),
+        headline=title, primary=body, cta=cta, link=link, img=img, video_url=video_url, is_video=bool(vid), n_creatives=n_cre,
         name_objective=p['objective'], camp_objective=cp['objective'],
         name_country=p['country'], name_lang=p['language']))
 
@@ -481,7 +490,7 @@ for r in meta_rows:
         cr=r['created'].isoformat(), ts=r['created_ts'].strftime('%Y-%m-%d %H:%M'), ld=iso(r['name_date']), b=r['batch'], fw=r['framework'], f=r['fmt'],
         hk=r['hook'], an=r['angle'], c=r['cr'], h=r['headline'], t=r['primary'], cta=r['cta'], url=r['link'],
         img=(f"images/{r['creative_id']}.jpg" if os.path.exists(os.path.join(ROOT, "images", f"{r['creative_id']}.jpg")) else r['img']),
-        lr=bool(re.search(r'p64x64|[ps]160x160', r['img'] or '')), vu=r['video_url'], v=r['is_video'], ct=r['creative_type'], cid=r['campaign_id'], cn=r['campaign'], n=r['ad_name'],
+        lr=bool(re.search(r'p64x64|[ps]160x160', r['img'] or '')), vu=r['video_url'], v=r['is_video'], ct=r['creative_type'], cid=r['campaign_id'], cn=r['campaign'], n=r['ad_name'], nc=r['n_creatives'],
         am=f'https://adsmanager.facebook.com/adsmanager/manage/ads?act={META_ACCT}&selected_ad_ids={r["ad_id"]}'))
 for r in tt_rows:
     dash.append(dict(id=r['ad_id'], p='tt', mk=r['country'].upper(), lg=r['language'].upper(),
@@ -490,7 +499,7 @@ for r in tt_rows:
         hk=r['hook'], an=r['angle'], c=r['cr'], h='', t=r['ad_text'], cta='', url='',
         img=(f"images/tt_{r['ad_id']}.jpg" if os.path.exists(os.path.join(ROOT, 'images', f"tt_{r['ad_id']}.jpg")) else ''),
         v='VIDEO' in r['tt_format'], lr=False, ct=r['tt_format'],
-        cid=r['campaign_id'], cn=r['campaign'], n=r['ad_name'], files=r['files'], am=''))
+        cid=r['campaign_id'], cn=r['campaign'], n=r['ad_name'], files=r['files'], nc=r['n_creatives'], am=''))
 n_linked = 0
 for a in dash:
     mk = f"{a['mk']}-{a['lg']}" if a['lg'] else a['mk']

@@ -256,7 +256,7 @@ function visual(a){
 function card(a){
   const tags = [mkt(a), a.g, a.th, a.de, a.b].filter(Boolean).map(t => `<span class="tag">${esc(t)}</span>`).join('');
   const angle = [a.fw, a.hk, a.an].filter(Boolean).join(' · ');
-  const nCre = a.files ? a.files.split('\n').length : 0;
+  const nCre = a.nc || (a.files ? a.files.split('\n').length : 0);
   return `<article class="card">
     ${visual(a)}
     <div class="details">
