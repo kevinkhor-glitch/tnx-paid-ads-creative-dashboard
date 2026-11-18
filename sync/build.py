@@ -487,7 +487,9 @@ for r in tt_rows:
     dash.append(dict(id=r['ad_id'], p='tt', mk=r['country'].upper(), lg=r['language'].upper(),
         g=r['group'], th=r['theme'], de=r['destination'], st=STATUS.get(r['status'], r['status'].title()),
         cr=r['created'].isoformat(), ts=r['created_ts'].strftime('%Y-%m-%d %H:%M'), ld=iso(r['name_date']), b=r['batch'], fw=r['framework'], f=r['fmt'],
-        hk=r['hook'], an=r['angle'], c=r['cr'], h='', t=r['ad_text'], cta='', url='', img='', ct=r['tt_format'],
+        hk=r['hook'], an=r['angle'], c=r['cr'], h='', t=r['ad_text'], cta='', url='',
+        img=(f"images/tt_{r['ad_id']}.jpg" if os.path.exists(os.path.join(ROOT, 'images', f"tt_{r['ad_id']}.jpg")) else ''),
+        v='VIDEO' in r['tt_format'], lr=False, ct=r['tt_format'],
         cid=r['campaign_id'], cn=r['campaign'], n=r['ad_name'], files=r['files'], am=''))
 n_linked = 0
 for a in dash:
