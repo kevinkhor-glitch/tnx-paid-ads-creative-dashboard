@@ -22,15 +22,17 @@ header{background:var(--black);color:var(--white);padding:22px 32px 0}
 h1{font-weight:500;font-size:26px;margin:0;letter-spacing:-.01em}
 h1 span{color:var(--blue);background:var(--white);padding:0 8px;margin-left:8px;font-size:14px;vertical-align:middle;font-weight:600}
 .sync{color:var(--gray);font-size:12px}
-.kpis{display:flex;gap:0;margin-top:18px;border-top:1px solid #222}
-.kpi{padding:14px 28px 16px 0;margin-right:28px;border-right:1px solid #222}
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);margin-top:20px;border-top:2px solid #3A3D4A;border-bottom:2px solid #3A3D4A}
+.kpi{padding:18px 24px 20px;border-right:2px solid #3A3D4A}
+.kpi:first-child{padding-left:0}
 .kpi:last-child{border-right:0}
-.kpi b{display:block;font-size:24px;font-weight:500}
-.kpi small{color:var(--gray);font-size:11px;text-transform:uppercase;letter-spacing:.06em}
-.tabs{display:flex;gap:4px;margin-top:6px}
-.tab{background:transparent;border:0;color:var(--gray);padding:12px 16px;cursor:pointer;border-bottom:3px solid transparent;font-weight:500}
+.kpi b{display:block;font-size:30px;font-weight:500;line-height:1.2}
+.kpi small{color:var(--gray);font-size:11px;text-transform:uppercase;letter-spacing:.08em}
+.tabs{display:flex;gap:8px;margin-top:4px}
+.tab{background:transparent;border:0;color:var(--gray);padding:14px 20px;cursor:pointer;border-bottom:4px solid transparent;font-weight:500;font-size:14px}
+.tab:hover{color:var(--white)}
 .tab.on{color:var(--white);border-bottom-color:var(--blue)}
-.filters{position:sticky;top:0;z-index:5;background:var(--white);border-bottom:1px solid var(--line);padding:14px 32px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.filters{position:sticky;top:0;z-index:5;background:var(--white);border-bottom:2px solid var(--line);padding:14px 32px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
 .filters input[type=search]{flex:1 1 260px;min-width:220px;padding:9px 12px;border:1px solid var(--line);outline:none}
 .filters input[type=search]:focus{border-color:var(--blue)}
 .filters select{padding:8px 10px;border:1px solid var(--line);background:var(--white);max-width:220px}
@@ -79,6 +81,7 @@ td.n{word-break:break-all;color:var(--muted);max-width:520px}
 .issuebar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
 .note{background:var(--white);border:1px solid var(--line);border-left:4px solid var(--blue);padding:16px 18px;max-width:760px}
 .hidden{display:none!important}
+@media (max-width:900px){.kpis{grid-template-columns:repeat(3,1fr)}.kpi:nth-child(3){border-right:0}.kpi:nth-child(4){padding-left:0}}
 @media (max-width:700px){header,main,.filters{padding-left:16px;padding-right:16px}.kpi{padding-right:14px;margin-right:14px}.grid{grid-template-columns:1fr}.card{grid-template-columns:1fr}.visual{height:300px}}
 </style>
 </head>
