@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TNX Creative Library</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=Noto+Sans+Thai:wght@400;500&family=Noto+Sans+SC:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --black:#000;--white:#fff;--blue:#152CFF;--atmos:#1581FF;--midnight:#050B40;--dawn:#CCD6FF;--gray:#A4A4A4;
+  --line:#E4E6F0;--muted:#5B6075;--bg:#F6F7FB;
+  --font:'Poppins','Noto Sans Thai','Noto Sans SC',Roboto,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--black);font-family:var(--font);font-size:14px;line-height:1.5}
+a{color:var(--blue)}
+button,input,select{font-family:inherit;font-size:13px}
+header{background:var(--black);color:var(--white);padding:22px 32px 0}
+.top{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap}
+h1{font-weight:500;font-size:26px;margin:0;letter-spacing:-.01em}
+h1 span{color:var(--blue);background:var(--white);padding:0 8px;margin-left:8px;font-size:14px;vertical-align:middle;font-weight:600}
+.sync{color:var(--gray);font-size:12px}
+.kpis{display:flex;gap:0;margin-top:18px;border-top:1px solid #222}
+.kpi{padding:14px 28px 16px 0;margin-right:28px;border-right:1px solid #222}
+.kpi:last-child{border-right:0}
+.kpi b{display:block;font-size:24px;font-weight:500}
+.kpi small{color:var(--gray);font-size:11px;text-transform:uppercase;letter-spacing:.06em}
+.tabs{display:flex;gap:4px;margin-top:6px}
+.tab{background:transparent;border:0;color:var(--gray);padding:12px 16px;cursor:pointer;border-bottom:3px solid transparent;font-weight:500}
+.tab.on{color:var(--white);border-bottom-color:var(--blue)}
+.filters{position:sticky;top:0;z-index:5;background:var(--white);border-bottom:1px solid var(--line);padding:14px 32px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.filters input[type=search]{flex:1 1 260px;min-width:220px;padding:9px 12px;border:1px solid var(--line);outline:none}
+.filters input[type=search]:focus{border-color:var(--blue)}
+.filters select{padding:8px 10px;border:1px solid var(--line);background:var(--white);max-width:220px}
+.chips{display:flex;gap:6px}
+.chip{border:1px solid var(--line);background:var(--white);padding:7px 12px;cursor:pointer}
+.chip.on{background:var(--blue);border-color:var(--blue);color:var(--white)}
+.reset{border:0;background:none;color:var(--blue);cursor:pointer;font-weight:500}
+.count{margin-left:auto;color:var(--muted);font-size:12px}
+main{padding:22px 32px 60px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(600px,1fr));gap:16px}
+.card{background:var(--white);border:1px solid var(--line);display:grid;grid-template-columns:260px 1fr;min-height:340px}
+.visual{background:var(--midnight);position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.visual img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.visual.lowres img{image-rendering:auto;filter:saturate(1.05)}
+.visual .fmt{position:absolute;left:0;top:0;background:var(--blue);color:var(--white);font-size:10px;padding:3px 8px;text-transform:uppercase;letter-spacing:.06em;z-index:2}
+.visual .play{position:absolute;z-index:2;width:56px;height:56px;border-radius:50%;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;text-decoration:none}
+.visual .play::after{content:"";border-left:18px solid #fff;border-top:11px solid transparent;border-bottom:11px solid transparent;margin-left:5px}
+.visual .none{color:var(--dawn);font-size:12px;text-align:center;padding:12px}
+.details{display:flex;flex-direction:column;min-width:0}
+.meta{padding:14px 16px;border-bottom:1px solid var(--line)}
+.code{font-weight:600;font-size:17px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.pill{font-size:10px;font-weight:600;padding:2px 7px;text-transform:uppercase;letter-spacing:.05em;border:1px solid var(--line);color:var(--muted)}
+.pill.active{background:#E8ECFF;border-color:var(--blue);color:var(--blue)}
+.pill.plat{background:var(--black);color:var(--white);border-color:var(--black)}
+.tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+.tag{font-size:11px;background:var(--bg);padding:2px 6px;color:var(--midnight)}
+.angle{font-size:12px;color:var(--muted);margin-top:6px;word-break:break-word}
+.body{padding:12px 16px;flex:1}
+.hl{font-weight:600;margin:0 0 6px}
+.txt{white-space:pre-wrap;color:#222;font-size:13px;max-height:9em;overflow:hidden;position:relative}
+.txt.open{max-height:none}
+.more{border:0;background:none;color:var(--blue);padding:4px 0 0;cursor:pointer;font-weight:500;font-size:12px}
+.foot{display:flex;gap:14px;padding:10px 16px;border-top:1px solid var(--line);font-size:12px;flex-wrap:wrap;align-items:center}
+.foot a{text-decoration:none;font-weight:500}
+.foot .date{margin-left:auto;color:var(--muted)}
+.loadmore{display:block;margin:24px auto 0;padding:10px 24px;background:var(--black);color:var(--white);border:0;cursor:pointer;font-weight:500}
+.empty{padding:60px;text-align:center;color:var(--muted)}
+table{width:100%;border-collapse:collapse;background:var(--white);border:1px solid var(--line)}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top;font-size:12.5px}
+th{background:var(--black);color:var(--white);font-weight:500;position:sticky;top:0}
+td.n{word-break:break-all;color:var(--muted);max-width:520px}
+.issuebar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.note{background:var(--white);border:1px solid var(--line);border-left:4px solid var(--blue);padding:16px 18px;max-width:760px}
+.hidden{display:none!important}
+@media (max-width:700px){header,main,.filters{padding-left:16px;padding-right:16px}.kpi{padding-right:14px;margin-right:14px}.grid{grid-template-columns:1fr}.card{grid-template-columns:1fr}.visual{height:300px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="top">
+    <div><h1>TNX Creative Library<span>Meta + TikTok</span></h1></div>
+    <div class="sync" id="sync"></div>
+  </div>
+  <div class="kpis" id="kpis"></div>
+  <nav class="tabs">
+    <button class="tab on" data-view="ads">Creatives</button>
+    <button class="tab" data-view="issues">Name issues</button>
+    <button class="tab" data-view="perf">Performance</button>
+  </nav>
+</header>
+
+<section class="filters" id="filters">
+  <input type="search" id="q" placeholder="Search CR code, angle, batch, copy, ad name…">
+  <div class="chips" id="platChips"></div>
+  <select id="fStatus"></select>
+  <select id="fGroup"></select>
+  <select id="fMarket"></select>
+  <select id="fTheme"></select>
+  <select id="fFormat"></select>
+  <select id="fBatch"></select>
+  <select id="fSort">
+    <option value="new">Newest first</option>
+    <option value="old">Oldest first</option>
+    <option value="cr">CR code</option>
+  </select>
+  <button class="reset" id="reset">Reset</button>
+  <span class="count" id="count"></span>
+</section>
+
+<main>
+  <div id="viewAds"><div class="grid" id="grid"></div><button class="loadmore hidden" id="more">Show more</button></div>
+  <div id="viewIssues" class="hidden"><div class="issuebar" id="issueChips"></div><table><thead><tr><th>Issue</th><th>Platform</th><th>Ad name</th><th>Detail</th></tr></thead><tbody id="issueRows"></tbody></table></div>
+  <div id="viewPerf" class="hidden"><div class="note"><b>Performance is coming next.</b><br>Spend, leads, cost per lead, clicks and CPM will be pulled from Meta Ads per ad and shown here and on each card.</div></div>
+</main>
+
+<script>
+const PAGE = 60;
+const PLAT = {fb:'Facebook', ig:'Instagram', tt:'TikTok'};
+let DATA = {ads:[], issues:[]}, shown = PAGE, plat = new Set(), issueFilter = '';
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uniq = (arr) => [...new Set(arr.filter(Boolean))].sort();
+const isActive = a => a.st === 'Active';
+const mkt = a => a.lg ? `${a.mk}-${a.lg}` : a.mk;
+
+function fillSelect(el, label, values){
+  el.innerHTML = `<option value="">${label}: all</option>` + values.map(v => `<option>${esc(v)}</option>`).join('');
+}
+
+function init(){
+  const A = DATA.ads;
+  $('sync').textContent = 'Last synced ' + DATA.synced;
+  const campaigns = new Set(A.map(a => a.cid)).size;
+  const activeCamps = new Set(A.filter(isActive).map(a => a.cid)).size;
+  $('kpis').innerHTML = [
+    [A.length, 'Ads'], [A.filter(isActive).length, 'Active ads'], [campaigns, 'Campaigns'],
+    [activeCamps, 'Active campaigns'], [new Set(DATA.issues.map(i => i.id)).size, 'Ads with name issues']
+  ].map(([n, l]) => `<div class="kpi"><b>${n.toLocaleString()}</b><small>${l}</small></div>`).join('');
+  $('platChips').innerHTML = ['fb','ig','tt'].map(p => `<button class="chip" data-p="${p}">${PLAT[p]}</button>`).join('');
+  fillSelect($('fStatus'), 'Status', ['Active', 'Not active']);
+  fillSelect($('fGroup'), 'Group', uniq(A.map(a => a.g)));
+  fillSelect($('fMarket'), 'Market', uniq(A.map(mkt)));
+  fillSelect($('fTheme'), 'Theme', uniq(A.map(a => a.th)));
+  fillSelect($('fFormat'), 'Format', uniq(A.map(a => a.f)));
+  fillSelect($('fBatch'), 'Batch', uniq(A.map(a => a.b)));
+  $('fStatus').value = 'Active';
+  bind(); render(); renderIssues();
+}
+
+function bind(){
+  $('platChips').onclick = e => { const p = e.target.dataset.p; if(!p) return;
+    plat.has(p) ? plat.delete(p) : plat.add(p); e.target.classList.toggle('on'); shown = PAGE; render(); };
+  ['q','fStatus','fGroup','fMarket','fTheme','fFormat','fBatch','fSort'].forEach(id =>
+    $(id).addEventListener(id === 'q' ? 'input' : 'change', () => { shown = PAGE; render(); }));
+  $('reset').onclick = () => { ['q','fStatus','fGroup','fMarket','fTheme','fFormat','fBatch'].forEach(id => $(id).value = '');
+    $('fSort').value = 'new'; plat.clear(); document.querySelectorAll('.chip').forEach(c => c.classList.remove('on')); shown = PAGE; render(); };
+  $('more').onclick = () => { shown += PAGE; render(); };
+  document.querySelectorAll('.tab').forEach(t => t.onclick = () => {
+    document.querySelectorAll('.tab').forEach(x => x.classList.toggle('on', x === t));
+    const v = t.dataset.view;
+    $('viewAds').classList.toggle('hidden', v !== 'ads');
+    $('viewIssues').classList.toggle('hidden', v !== 'issues');
+    $('viewPerf').classList.toggle('hidden', v !== 'perf');
+    $('filters').classList.toggle('hidden', v !== 'ads');
+  });
+  $('grid').addEventListener('click', e => { if(e.target.classList.contains('more')){
+    const t = e.target.previousElementSibling; t.classList.toggle('open');
+    e.target.textContent = t.classList.contains('open') ? 'Show less' : 'Show full copy'; }});
+}
+
+function filtered(){
+  const q = $('q').value.trim().toLowerCase(), st = $('fStatus').value, g = $('fGroup').value, m = $('fMarket').value,
+        th = $('fTheme').value, f = $('fFormat').value, b = $('fBatch').value;
+  let r = DATA.ads.filter(a =>
+    (!plat.size || plat.has(a.p)) &&
+    (!st || (st === 'Active') === isActive(a)) &&
+    (!g || a.g === g) && (!m || mkt(a) === m) && (!th || a.th === th) && (!f || a.f === f) && (!b || a.b === b) &&
+    (!q || [a.c, a.an, a.hk, a.b, a.h, a.t, a.n, a.th, a.fw].join(' ').toLowerCase().includes(q)));
+  const s = $('fSort').value;
+  const crNum = c => { const m = /CR(\d+)(?:_(\d+))?/.exec(c || ''); return m ? (+m[1]) * 1000 + (+(m[2] || 0)) : 1e9; };
+  r.sort(s === 'old' ? (x, y) => x.cr.localeCompare(y.cr) : s === 'cr' ? (x, y) => crNum(x.c) - crNum(y.c) : (x, y) => y.cr.localeCompare(x.cr));
+  return r;
+}
+
+function visual(a){
+  const label = `<span class="fmt">${esc(a.v ? 'video' : (a.f || a.ct || ''))}</span>`;
+  const play = a.vu ? `<a class="play" href="${esc(a.vu)}" target="_blank" rel="noopener" title="Watch video"></a>` : '';
+  if(!a.img) return `<div class="visual">${label}<div class="none">${a.p === 'tt' ? 'TikTok Smart+<br>preview not available' : 'No preview'}</div></div>`;
+  const low = a.lr ? ' lowres' : '';
+  return `<div class="visual${a.v ? ' video' : ''}${low}">${label}<img loading="lazy" src="${esc(a.img)}" alt="" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'none',innerHTML:'No preview'}))">${play}</div>`;
+}
+
+function card(a){
+  const tags = [mkt(a), a.g, a.th, a.de, a.b].filter(Boolean).map(t => `<span class="tag">${esc(t)}</span>`).join('');
+  const angle = [a.fw, a.hk, a.an].filter(Boolean).join(' · ');
+  const files = a.files ? `<div class="angle">Videos: ${esc(a.files.split('\n').length)}</div>` : '';
+  return `<article class="card">
+    ${visual(a)}
+    <div class="details">
+      <div class="meta">
+        <div class="code">${esc(a.c || 'No CR code')}<span class="pill plat">${a.p}</span><span class="pill ${isActive(a) ? 'active' : ''}">${esc(a.st)}</span></div>
+        <div class="tags">${tags}</div>
+        ${angle ? `<div class="angle">${esc(angle)}</div>` : ''}${files}
+      </div>
+      <div class="body">
+        ${a.h ? `<p class="hl">${esc(a.h)}</p>` : ''}
+        <div class="txt">${esc(a.t || '(no copy returned)')}</div>
+        ${(a.t || '').length > 220 ? '<button class="more">Show full copy</button>' : ''}
+      </div>
+      <div class="foot">
+        ${a.am ? `<a href="${esc(a.am)}" target="_blank" rel="noopener">Ads Manager</a>` : ''}
+        ${a.vu ? `<a href="${esc(a.vu)}" target="_blank" rel="noopener">Watch video</a>` : ''}
+        ${a.url && /^https?:/.test(a.url) && !/fb\.me\/?$/.test(a.url) ? `<a href="${esc(a.url)}" target="_blank" rel="noopener">Landing page</a>` : ''}
+        ${a.cta ? `<span class="pill">${esc(a.cta.replace(/_/g, ' '))}</span>` : ''}
+        <span class="date" title="${esc(a.n)}">Created ${esc(a.cr)}</span>
+      </div>
+    </div>
+  </article>`;
+}
+
+function render(){
+  const r = filtered();
+  $('count').textContent = `${r.length.toLocaleString()} ads`;
+  $('grid').innerHTML = r.length ? r.slice(0, shown).map(card).join('') : '<div class="empty">No ads match these filters.</div>';
+  $('more').classList.toggle('hidden', r.length <= shown);
+}
+
+function renderIssues(){
+  const counts = {};
+  DATA.issues.forEach(i => counts[i.issue] = (counts[i.issue] || 0) + 1);
+  $('issueChips').innerHTML = `<button class="chip on" data-i="">All (${DATA.issues.length})</button>` +
+    Object.entries(counts).sort((a, b) => b[1] - a[1]).map(([k, v]) => `<button class="chip" data-i="${esc(k)}">${esc(k)} (${v})</button>`).join('');
+  $('issueChips').onclick = e => { if(e.target.dataset.i === undefined) return; issueFilter = e.target.dataset.i;
+    document.querySelectorAll('#issueChips .chip').forEach(c => c.classList.toggle('on', c === e.target)); drawIssues(); };
+  drawIssues();
+}
+function drawIssues(){
+  $('issueRows').innerHTML = DATA.issues.filter(i => !issueFilter || i.issue === issueFilter)
+    .map(i => `<tr><td>${esc(i.issue)}</td><td>${esc(i.p)}</td><td class="n">${esc(i.n)}</td><td>${esc(i.detail)}</td></tr>`).join('');
+}
+
+fetch('data/ads.json', {cache: 'no-store'}).then(r => r.json()).then(d => { DATA = d; init(); })
+  .catch(() => { $('grid').innerHTML = '<div class="empty">Could not load data/ads.json.</div>'; });
+</script>
+</body>
+</html>
