@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>TNX Creative Library</title>
+<title>Teleport Next Day - Creative Library</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=Noto+Sans+Thai:wght@400;500&family=Noto+Sans+SC:wght@400;500&display=swap" rel="stylesheet">
@@ -28,8 +28,8 @@ h1 span{color:var(--blue);background:var(--white);padding:0 8px;margin-left:8px;
 .kpi:last-child{border-right:0}
 .kpi b{display:block;font-size:30px;font-weight:500;line-height:1.2}
 .kpi small{color:var(--gray);font-size:11px;text-transform:uppercase;letter-spacing:.08em}
-.tabs{display:flex;gap:8px;margin-top:4px}
-.tab{background:transparent;border:0;color:var(--gray);padding:14px 20px;cursor:pointer;border-bottom:4px solid transparent;font-weight:500;font-size:14px}
+.tabs{display:flex;gap:0;margin-top:4px}
+.tab{background:transparent;border:0;color:var(--gray);padding:14px 36px;min-width:170px;cursor:pointer;border-bottom:4px solid transparent;font-weight:500;font-size:14px}
 .tab:hover{color:var(--white)}
 .tab.on{color:var(--white);border-bottom-color:var(--blue)}
 .filters{position:sticky;top:0;z-index:5;background:var(--white);border-bottom:2px solid var(--line);padding:14px 32px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
@@ -80,6 +80,28 @@ th{background:var(--black);color:var(--white);font-weight:500;position:sticky;to
 td.n{word-break:break-all;color:var(--muted);max-width:520px}
 .issuebar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
 .note{background:var(--white);border:1px solid var(--line);border-left:4px solid var(--blue);padding:16px 18px;max-width:760px}
+.tl-head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:12px}
+.tl-head h2{font-weight:500;font-size:20px;margin:0}
+.sub{color:var(--muted);font-size:12px;margin:2px 0 0}
+.tl-chart{background:var(--white);border:1px solid var(--line);padding:18px 18px 8px;position:relative;margin-bottom:22px}
+.tl-bars{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);align-items:end;column-gap:2px;height:170px;border-bottom:1px solid var(--line)}
+.tl-bar{display:flex;align-items:flex-end;height:100%;cursor:pointer}
+.tl-bar i{display:block;width:100%;background:var(--blue);border-radius:4px 4px 0 0;min-height:0}
+.tl-bar:hover i{background:var(--atmos)}
+.tl-bar.empty{cursor:default}
+.tl-axis{display:flex;justify-content:space-between;color:var(--muted);font-size:11px;padding-top:6px}
+.tl-tip{position:absolute;pointer-events:none;background:var(--black);color:var(--white);font-size:12px;padding:6px 9px;white-space:nowrap;transform:translate(-50%,-110%);display:none;z-index:4}
+.tl-group{margin-bottom:18px}
+.tl-date{font-weight:600;font-size:13px;padding:8px 0;border-bottom:2px solid var(--black);display:flex;justify-content:space-between;position:sticky;top:64px;background:var(--bg);z-index:2}
+.tl-date span{color:var(--muted);font-weight:500}
+.tl-row{display:grid;grid-template-columns:56px 64px 110px 1fr 150px 70px;gap:12px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line);font-size:12.5px}
+.tl-row img,.tl-row .noimg{width:56px;height:56px;object-fit:cover;background:var(--midnight);display:block}
+.tl-row .t{color:var(--muted);font-variant-numeric:tabular-nums}
+.tl-row .c{font-weight:600}
+.tl-row .a{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tl-row .lk a{margin-right:8px;text-decoration:none;font-weight:500}
+.launch{color:var(--muted);font-size:12px;margin-top:6px}
+.launch b{color:var(--black);font-weight:600}
 .hidden{display:none!important}
 @media (max-width:900px){.kpis{grid-template-columns:repeat(3,1fr)}.kpi:nth-child(3){border-right:0}.kpi:nth-child(4){padding-left:0}}
 @media (max-width:700px){header,main,.filters{padding-left:16px;padding-right:16px}.kpi{padding-right:14px;margin-right:14px}.grid{grid-template-columns:1fr}.card{grid-template-columns:1fr}.visual{height:300px}}
@@ -88,12 +110,13 @@ td.n{word-break:break-all;color:var(--muted);max-width:520px}
 <body>
 <header>
   <div class="top">
-    <div><h1>TNX Creative Library<span>Meta + TikTok</span></h1></div>
+    <div><h1>Teleport Next Day - Creative Library<span>Meta + TikTok</span></h1></div>
     <div class="sync" id="sync"></div>
   </div>
   <div class="kpis" id="kpis"></div>
   <nav class="tabs">
     <button class="tab on" data-view="ads">Creatives</button>
+    <button class="tab" data-view="timeline">Timeline</button>
     <button class="tab" data-view="issues">Name issues</button>
     <button class="tab" data-view="perf">Performance</button>
   </nav>
@@ -120,6 +143,12 @@ td.n{word-break:break-all;color:var(--muted);max-width:520px}
 
 <main>
   <div id="viewAds"><div class="grid" id="grid"></div><button class="loadmore hidden" id="more">Show more</button></div>
+  <div id="viewTimeline" class="hidden">
+    <div class="tl-head"><div><h2>Launch timeline</h2><p class="sub" id="tlSub"></p></div>
+      <div class="chips" id="tlScale"><button class="chip on" data-s="week">Weekly</button><button class="chip" data-s="month">Monthly</button></div></div>
+    <div class="tl-chart" id="tlChart"></div>
+    <div id="tlList"></div>
+  </div>
   <div id="viewIssues" class="hidden"><div class="issuebar" id="issueChips"></div><table><thead><tr><th>Issue</th><th>Platform</th><th>Ad name</th><th>Detail</th></tr></thead><tbody id="issueRows"></tbody></table></div>
   <div id="viewPerf" class="hidden"><div class="note"><b>Performance is coming next.</b><br>Spend, leads, cost per lead, clicks and CPM will be pulled from Meta Ads per ad and shown here and on each card.</div></div>
 </main>
@@ -127,7 +156,7 @@ td.n{word-break:break-all;color:var(--muted);max-width:520px}
 <script>
 const PAGE = 60;
 const PLAT = {fb:'Facebook', ig:'Instagram', tt:'TikTok'};
-let DATA = {ads:[], issues:[]}, shown = PAGE, plat = new Set(), issueFilter = '';
+let DATA = {ads:[], issues:[]}, shown = PAGE, plat = new Set(), issueFilter = '', view = 'ads', tlScale = 'week', tlOpened = false;
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const uniq = (arr) => [...new Set(arr.filter(Boolean))].sort();
@@ -166,13 +195,18 @@ function bind(){
   $('reset').onclick = () => { ['q','fStatus','fGroup','fMarket','fTheme','fFormat','fBatch','fLinks'].forEach(id => $(id).value = '');
     $('fSort').value = 'new'; plat.clear(); document.querySelectorAll('.chip').forEach(c => c.classList.remove('on')); shown = PAGE; render(); };
   $('more').onclick = () => { shown += PAGE; render(); };
+  $('tlScale').onclick = e => { const v = e.target.dataset.s; if(!v) return; tlScale = v;
+    document.querySelectorAll('#tlScale .chip').forEach(c => c.classList.toggle('on', c === e.target)); render(); };
   document.querySelectorAll('.tab').forEach(t => t.onclick = () => {
     document.querySelectorAll('.tab').forEach(x => x.classList.toggle('on', x === t));
     const v = t.dataset.view;
     $('viewAds').classList.toggle('hidden', v !== 'ads');
     $('viewIssues').classList.toggle('hidden', v !== 'issues');
     $('viewPerf').classList.toggle('hidden', v !== 'perf');
-    $('filters').classList.toggle('hidden', v !== 'ads');
+    $('viewTimeline').classList.toggle('hidden', v !== 'timeline');
+    $('filters').classList.toggle('hidden', v !== 'ads' && v !== 'timeline');
+    if(v === 'timeline' && !tlOpened){ $('fStatus').value = ''; tlOpened = true; }
+    view = v; render();
   });
   $('grid').addEventListener('click', e => { if(e.target.classList.contains('more')){
     const t = e.target.previousElementSibling; t.classList.toggle('open');
@@ -213,6 +247,7 @@ function card(a){
         <div class="code">${esc(a.c || 'No CR code')}<span class="pill plat">${a.p}</span><span class="pill ${isActive(a) ? 'active' : ''}">${esc(a.st)}</span></div>
         <div class="tags">${tags}</div>
         ${angle ? `<div class="angle">${esc(angle)}</div>` : ''}${files}
+        <div class="launch" title="When the ad was created in Ads Manager (Malaysia time)">Launched <b>${fmtTs(a.ts)}</b></div>
       </div>
       <div class="body">
         ${a.h ? `<p class="hl">${esc(a.h)}</p>` : ''}
@@ -227,13 +262,57 @@ function card(a){
         ${a.vu ? `<a href="${esc(a.vu)}" target="_blank" rel="noopener">Watch video</a>` : ''}
         ${a.url && /^https?:/.test(a.url) && !/fb\.me\/?$/.test(a.url) ? `<a href="${esc(a.url)}" target="_blank" rel="noopener">Landing page</a>` : ''}
         ${a.cta ? `<span class="pill">${esc(a.cta.replace(/_/g, ' '))}</span>` : ''}
-        <span class="date" title="${esc(a.n)}">Created ${esc(a.cr)}</span>
+        <span class="date" title="${esc(a.n)}">${esc(a.id)}</span>
       </div>
     </div>
   </article>`;
 }
 
+const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function fmtDate(d){ const [y,m,dd] = d.split('-'); return `${+dd} ${MON[+m-1]} ${y}`; }
+function fmtTs(ts){ if(!ts) return ''; const [d,t] = ts.split(' '); return `${fmtDate(d)}, ${t}`; }
+function weekStart(d){ const x = new Date(d + 'T00:00:00Z'); const k = (x.getUTCDay() + 6) % 7; x.setUTCDate(x.getUTCDate() - k); return x.toISOString().slice(0,10); }
+function bucket(d){ return tlScale === 'week' ? weekStart(d) : d.slice(0,7) + '-01'; }
+function nextBucket(b){ const x = new Date(b + 'T00:00:00Z'); if(tlScale === 'week') x.setUTCDate(x.getUTCDate() + 7); else x.setUTCMonth(x.getUTCMonth() + 1); return x.toISOString().slice(0,10); }
+function bucketLabel(b){ if(tlScale === 'month'){ const [y,m] = b.split('-'); return `${MON[+m-1]} ${y}`; } return 'Week of ' + fmtDate(b); }
+
+function renderTimeline(r){
+  if(!r.length){ $('tlChart').innerHTML = '<div class="empty">No ads match these filters.</div>'; $('tlList').innerHTML = ''; $('tlSub').textContent = ''; return; }
+  const counts = {}; r.forEach(a => { const b = bucket(a.cr); counts[b] = (counts[b] || 0) + 1; });
+  const keys = Object.keys(counts).sort(); const all = [];
+  for(let b = keys[0]; b <= keys[keys.length - 1]; b = nextBucket(b)) all.push(b);
+  const max = Math.max(...Object.values(counts));
+  $('tlSub').textContent = `${r.length.toLocaleString()} ads launched between ${fmtDate(r.map(a=>a.cr).sort()[0])} and ${fmtDate(r.map(a=>a.cr).sort().pop())}. Click a bar to jump to it.`;
+  $('tlChart').innerHTML = `<div class="tl-tip" id="tlTip"></div><div class="tl-bars">${all.map(b => {
+      const n = counts[b] || 0;
+      return `<div class="tl-bar${n ? '' : ' empty'}" data-b="${b}" data-n="${n}"><i style="height:${n ? Math.max(2, n / max * 100) : 0}%"></i></div>`; }).join('')}</div>
+    <div class="tl-axis"><span>${bucketLabel(all[0])}</span><span>${bucketLabel(all[all.length - 1])}</span></div>`;
+  const tip = $('tlTip'), chart = $('tlChart');
+  chart.querySelectorAll('.tl-bar').forEach(el => {
+    el.onmouseenter = () => { const rc = el.getBoundingClientRect(), cc = chart.getBoundingClientRect();
+      tip.textContent = `${bucketLabel(el.dataset.b)}: ${el.dataset.n} ad${el.dataset.n === '1' ? '' : 's'}`;
+      tip.style.left = (rc.left - cc.left + rc.width / 2) + 'px'; tip.style.top = (rc.top - cc.top + rc.height - el.firstChild.offsetHeight) + 'px'; tip.style.display = 'block'; };
+    el.onmouseleave = () => tip.style.display = 'none';
+    el.onclick = () => { const t = document.getElementById('tl-' + el.dataset.b); if(t) t.scrollIntoView({behavior:'smooth', block:'start'}); };
+  });
+  const byDay = {}; [...r].sort((x, y) => y.ts.localeCompare(x.ts)).forEach(a => (byDay[a.cr] = byDay[a.cr] || []).push(a));
+  const seenBucket = new Set();
+  $('tlList').innerHTML = Object.keys(byDay).sort().reverse().map(d => {
+    const b = bucket(d); const anchor = seenBucket.has(b) ? '' : ` id="tl-${b}"`; seenBucket.add(b);
+    const rows = byDay[d].map(a => `<div class="tl-row">
+        ${a.img ? `<img loading="lazy" src="${esc(a.img)}" alt="">` : '<div class="noimg"></div>'}
+        <span class="t">${esc(a.ts.split(' ')[1])}</span>
+        <span class="c">${esc(a.c || '—')} <span class="pill plat">${a.p}</span></span>
+        <span class="a" title="${esc(a.n)}">${esc([mkt(a), a.g, a.th, a.an].filter(Boolean).join(' · '))}</span>
+        <span class="lk">${a.nl ? `<a href="${esc(a.nl)}" target="_blank" rel="noopener">Notion</a>` : ''}${a.dl ? `<a href="${esc(a.dl)}" target="_blank" rel="noopener">Drive</a>` : ''}${a.am ? `<a href="${esc(a.am)}" target="_blank" rel="noopener">Ad</a>` : ''}</span>
+        <span class="pill ${isActive(a) ? 'active' : ''}">${esc(a.st)}</span>
+      </div>`).join('');
+    return `<section class="tl-group"${anchor}><div class="tl-date">${fmtDate(d)}<span>${byDay[d].length} ad${byDay[d].length === 1 ? '' : 's'}</span></div>${rows}</section>`;
+  }).join('');
+}
+
 function render(){
+  if(view === 'timeline'){ const r = filtered(); $('count').textContent = `${r.length.toLocaleString()} ads`; renderTimeline(r); return; }
   const r = filtered();
   $('count').textContent = `${r.length.toLocaleString()} ads`;
   $('grid').innerHTML = r.length ? r.slice(0, shown).map(card).join('') : '<div class="empty">No ads match these filters.</div>';

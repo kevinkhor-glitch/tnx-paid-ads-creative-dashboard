@@ -108,6 +108,13 @@ def parse_name(name):
     return out
 
 
+MYT = datetime.timezone(datetime.timedelta(hours=8))
+def meta_time(t):   # '2026-11-18T12:51:49+0800'
+    return datetime.datetime.strptime(t, '%Y-%m-%dT%H:%M:%S%z').astimezone(MYT)
+def tt_time(t):     # '2026-11-12 06:21:08' in UTC
+    return datetime.datetime.strptime(t, '%Y-%m-%d %H:%M:%S').replace(tzinfo=datetime.timezone.utc).astimezone(MYT)
+
+
 def camp_group(objective):
     return {'opportunity': 'Lead Gen', 'lead': 'Lead Gen', 'conversion': 'Lead Gen',
             'registration': 'Registration', 'reach': 'Awareness',
@@ -159,7 +166,7 @@ for a in ads:
         theme=camp_theme(a['campaign_name']), destination=dest_label(cp['destination'] or p['destination']),
         campaign_id=a['campaign_id'], campaign=a['campaign_name'], adset_id=a['adset_id'],
         adset=a['adset_name'], ad_name=a['name'], status=a['effective_status'],
-        created=datetime.date.fromisoformat(a['created_time'][:10]), name_date=p['name_date'],
+        created=meta_time(a['created_time']).date(), created_ts=meta_time(a['created_time']), name_date=p['name_date'],
         batch=p['batch'], framework=p['framework'], fmt=p['fmt'], hook=p['hook'], angle=p['angle'],
         cr=p['cr'], targeting=p['targeting'], creative_id=a['creative_id'],
         creative_type=c.get('object_type', ''), flexible='Yes' if afs else 'No',
@@ -183,7 +190,7 @@ for x in tt:
         theme=camp_theme(x['campaign_name']), destination=dest_label(cp['destination']),
         campaign_id=x['campaign_id'], campaign=x['campaign_name'], adset_id=x['adgroup_id'],
         adset=x['adgroup_name'], ad_name=x['ad_name'], status=x.get('effective_status', ''),
-        created=datetime.date.fromisoformat(x['create_time'][:10]), name_date=p['name_date'],
+        created=tt_time(x['create_time']).date(), created_ts=tt_time(x['create_time']), name_date=p['name_date'],
         batch=p['batch'], framework=p['framework'], fmt=p['fmt'], hook=p['hook'], angle=p['angle'],
         cr=p['cr'], targeting=p['targeting'], n_creatives=len(files), files='\n'.join(files),
         tt_format=', '.join(sorted(f for f in fmts if f)), ad_text='\n\n---\n\n'.join(texts),
@@ -471,7 +478,7 @@ dash = []
 for r in meta_rows:
     dash.append(dict(id=r['ad_id'], p=r['platform'], mk=r['country'].upper(), lg=r['language'].upper(),
         g=r['group'], th=r['theme'], de=r['destination'], st=STATUS.get(r['status'], r['status'].title()),
-        cr=r['created'].isoformat(), ld=iso(r['name_date']), b=r['batch'], fw=r['framework'], f=r['fmt'],
+        cr=r['created'].isoformat(), ts=r['created_ts'].strftime('%Y-%m-%d %H:%M'), ld=iso(r['name_date']), b=r['batch'], fw=r['framework'], f=r['fmt'],
         hk=r['hook'], an=r['angle'], c=r['cr'], h=r['headline'], t=r['primary'], cta=r['cta'], url=r['link'],
         img=(f"images/{r['creative_id']}.jpg" if os.path.exists(os.path.join(ROOT, "images", f"{r['creative_id']}.jpg")) else r['img']),
         lr=bool(re.search(r'p64x64|[ps]160x160', r['img'] or '')), vu=r['video_url'], v=r['is_video'], ct=r['creative_type'], cid=r['campaign_id'], cn=r['campaign'], n=r['ad_name'],
@@ -479,7 +486,7 @@ for r in meta_rows:
 for r in tt_rows:
     dash.append(dict(id=r['ad_id'], p='tt', mk=r['country'].upper(), lg=r['language'].upper(),
         g=r['group'], th=r['theme'], de=r['destination'], st=STATUS.get(r['status'], r['status'].title()),
-        cr=r['created'].isoformat(), ld=iso(r['name_date']), b=r['batch'], fw=r['framework'], f=r['fmt'],
+        cr=r['created'].isoformat(), ts=r['created_ts'].strftime('%Y-%m-%d %H:%M'), ld=iso(r['name_date']), b=r['batch'], fw=r['framework'], f=r['fmt'],
         hk=r['hook'], an=r['angle'], c=r['cr'], h='', t=r['ad_text'], cta='', url='', img='', ct=r['tt_format'],
         cid=r['campaign_id'], cn=r['campaign'], n=r['ad_name'], files=r['files'], am=''))
 n_linked = 0
