@@ -317,6 +317,7 @@ function renderTimeline(r){
 }
 
 function render(){
+  if(typeof setFh === 'function') requestAnimationFrame(setFh);
   if(view === 'timeline'){ const r = filtered(); $('count').textContent = `${r.length.toLocaleString()} ads`; renderTimeline(r); return; }
   const r = filtered();
   $('count').textContent = `${r.length.toLocaleString()} ads`;
