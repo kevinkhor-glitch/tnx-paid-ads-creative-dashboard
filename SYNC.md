@@ -10,7 +10,7 @@ Data is pulled through Claude's connectors (Meta Ads, TikTok for Business, Googl
 |---|---|---|
 | Meta Ads | Teleport Next Day | `535902558289665` |
 | TikTok Ads | Teleport Next Day | `7533075564996100097` |
-| Google Sheet | TNX Creative Links (same folder as TNX Master Creative Sheet) | `11P8ifq0AxpG5gvXHvFhPbCt7goh690A_lxYQLbeYABU` |
+| Google Sheet | TNX Creative Links (same folder as TNX Master Creative Sheet) | `1UxknhrzVLaGwgy1RB4_DbGWs5yb-1ebOuA_n4JaR_jE` |
 
 ## Steps
 

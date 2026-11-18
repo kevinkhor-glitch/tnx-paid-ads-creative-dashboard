@@ -4,7 +4,7 @@ Input: the JSON result of Google Drive get_file_metadata (snippetVerbosity=MAX_A
 for the Links sheet, saved to a file. Drive's text snapshot drops empty cells, so columns
 can't be read by position; each value is recognised by what it looks like instead:
   CR code  CR12 / CR12_3      market  MY-EN, TH-TH ...     ad id  15+ digit number
-  Notion   notion.so / notion.site URL                     Drive  drive.google.com / docs.google.com URL
+  Notion   notion.so / notion.site / notion.com URL                     Drive  drive.google.com / docs.google.com URL
 Usage: python3 sync/read_links.py <metadata.json>
 """
 import json, re, sys, os
@@ -27,7 +27,7 @@ for line in text.splitlines():
         if not r['cr'] and re.fullmatch(r'CR\d+(?:_\d+)?', t, re.I): r['cr'] = t.upper()
         elif not r['market'] and re.fullmatch(r'[A-Z]{2}(?:-[A-Z]{2})+|[A-Z]{2}', t): r['market'] = t
         elif not r['ad_id'] and re.fullmatch(r'\d{15,}', t): r['ad_id'] = t
-        elif not r['notion'] and re.search(r'notion\.(so|site)/', t): r['notion'] = t
+        elif not r['notion'] and re.search(r'notion\.(so|site|com)/', t): r['notion'] = t
         elif not r['drive'] and re.search(r'(drive|docs)\.google\.com/', t): r['drive'] = t
     if r['notion'] or r['drive']:
         rows.append(r)
