@@ -92,7 +92,7 @@ td.n{word-break:break-all;color:var(--muted);max-width:520px}
 .tl-axis{display:flex;justify-content:space-between;color:var(--muted);font-size:11px;padding-top:6px}
 .tl-tip{position:absolute;pointer-events:none;background:var(--black);color:var(--white);font-size:12px;padding:6px 9px;white-space:nowrap;transform:translate(-50%,-110%);display:none;z-index:4}
 .tl-group{margin-bottom:18px}
-.tl-date{font-weight:600;font-size:13px;padding:8px 0;border-bottom:2px solid var(--black);display:flex;justify-content:space-between;position:sticky;top:64px;background:var(--bg);z-index:2}
+.tl-date{font-weight:600;font-size:13px;padding:8px 0;border-bottom:2px solid var(--black);display:flex;justify-content:space-between;position:sticky;top:var(--fh,64px);background:var(--bg);z-index:2}
 .tl-date span{color:var(--muted);font-weight:500}
 .tl-row{display:grid;grid-template-columns:56px 64px 110px 1fr 150px 70px;gap:12px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line);font-size:12.5px}
 .tl-row img,.tl-row .noimg{width:56px;height:56px;object-fit:cover;background:var(--midnight);display:block}
@@ -102,6 +102,9 @@ td.n{word-break:break-all;color:var(--muted);max-width:520px}
 .tl-row .lk a{margin-right:8px;text-decoration:none;font-weight:500}
 .launch{color:var(--muted);font-size:12px;margin-top:6px}
 .launch b{color:var(--black);font-weight:600}
+.totop{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(16px);z-index:20;background:var(--black);color:var(--white);border:2px solid var(--blue);padding:11px 22px;font-weight:500;font-size:13px;cursor:pointer;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;box-shadow:0 6px 18px rgba(5,11,64,.25)}
+.totop.show{opacity:1;pointer-events:auto;transform:translateX(-50%) translateY(0)}
+.totop:hover{background:var(--blue)}
 .hidden{display:none!important}
 @media (max-width:900px){.kpis{grid-template-columns:repeat(3,1fr)}.kpi:nth-child(3){border-right:0}.kpi:nth-child(4){padding-left:0}}
 @media (max-width:700px){header,main,.filters{padding-left:16px;padding-right:16px}.kpi{padding-right:14px;margin-right:14px}.grid{grid-template-columns:1fr}.card{grid-template-columns:1fr}.visual{height:300px}}
@@ -152,6 +155,7 @@ td.n{word-break:break-all;color:var(--muted);max-width:520px}
   <div id="viewIssues" class="hidden"><div class="issuebar" id="issueChips"></div><table><thead><tr><th>Issue</th><th>Platform</th><th>Ad name</th><th>Detail</th></tr></thead><tbody id="issueRows"></tbody></table></div>
   <div id="viewPerf" class="hidden"><div class="note"><b>Performance is coming next.</b><br>Spend, leads, cost per lead, clicks and CPM will be pulled from Meta Ads per ad and shown here and on each card.</div></div>
 </main>
+<button class="totop" id="totop" aria-label="Back to top">↑ Back to top</button>
 
 <script>
 const PAGE = 60;
@@ -206,6 +210,7 @@ function bind(){
     $('viewTimeline').classList.toggle('hidden', v !== 'timeline');
     $('filters').classList.toggle('hidden', v !== 'ads' && v !== 'timeline');
     if(v === 'timeline' && !tlOpened){ $('fStatus').value = ''; tlOpened = true; }
+    $('fSort').classList.toggle('hidden', v === 'timeline');
     view = v; render();
   });
   $('grid').addEventListener('click', e => { if(e.target.classList.contains('more')){
@@ -332,6 +337,11 @@ function drawIssues(){
   $('issueRows').innerHTML = DATA.issues.filter(i => !issueFilter || i.issue === issueFilter)
     .map(i => `<tr><td>${esc(i.issue)}</td><td>${esc(i.p)}</td><td class="n">${esc(i.n)}</td><td>${esc(i.detail)}</td></tr>`).join('');
 }
+
+const setFh = () => document.documentElement.style.setProperty('--fh', $('filters').offsetHeight + 'px');
+window.addEventListener('resize', setFh); setTimeout(setFh, 0);
+window.addEventListener('scroll', () => $('totop').classList.toggle('show', window.scrollY > 900), {passive: true});
+$('totop').onclick = () => window.scrollTo({top: 0, behavior: 'smooth'});
 
 fetch('data/ads.json', {cache: 'no-store'}).then(r => r.json()).then(d => { DATA = d; init(); })
   .catch(() => { $('grid').innerHTML = '<div class="empty">Could not load data/ads.json.</div>'; });
