@@ -504,12 +504,14 @@ for r in tt_rows:
 # card from the Marketing DB (sync/raw/notion_cards.json, see SYNC.md step 5b). Links sheet wins.
 import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from notion_match import load_cards, match_ad, assign_waves
+from notion_match import load_cards, load_folders, match_ad, assign_waves
 NOTION_FROM = '2026-10-01'   # card titles follow "[TNX PAID - XX] Batch N - Angle - Format" from here on
 cards = load_cards(D + 'notion_cards.json') if os.path.exists(D + 'notion_cards.json') else []
+folders = load_folders(D + 'drive_folders.json') if os.path.exists(D + 'drive_folders.json') else []
 assign_waves(dash)
-n_linked = n_auto = 0
+n_linked = n_auto = n_dauto = 0
 unmatched = {}
+no_folder = {}
 for a in dash:
     mk = f"{a['mk']}-{a['lg']}" if a['lg'] else a['mk']
     lk = link_for(a['id'], a['c'], mk)
@@ -523,12 +525,20 @@ for a in dash:
             n_auto += 1
         else:
             unmatched.setdefault(why[:140], []).append(a['c'] or a['n'][-40:])
+    if not a['dl'] and folders and a['cr'] >= NOTION_FROM:
+        fo, why = match_ad(a, folders)
+        if fo:
+            a['dl'] = fo['url']; a['da'] = 1; n_dauto += 1
+        else:
+            no_folder.setdefault(f"{a['mk']}-{a['lg']} {a['b']} {a['f']}", []).append(a['c'] or a['n'][-40:])
     n_linked += bool(a['nl'] or a['dl'])
 for a in dash:
     a.pop('_wave', None)
-print('ads with links', n_linked, '(of which Notion auto-matched:', n_auto, ')')
+print('ads with links', n_linked, '(Notion auto-matched:', n_auto, '| Drive folder auto-matched:', n_dauto, ')')
 for why, crs in sorted(unmatched.items(), key=lambda x: -len(x[1])):
     print('  no Notion brief found (%d): %s -> %s' % (len(crs), why, ', '.join(sorted(set(crs))[:8])))
+for grp, crs in sorted(no_folder.items()):
+    print('  no Drive folder found: %s -> %s' % (grp, ', '.join(sorted(set(crs))[:8])))
 out_d = {'synced': RUN_AT, 'ads': dash,
          'issues': [dict(id=i[0], p=i[1], n=i[2], issue=i[3], detail=i[4]) for i in issues]}
 import os

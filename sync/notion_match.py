@@ -145,6 +145,8 @@ def match_ad(ad, cards):
         exact = fmt in cf or (fmt == 'carousel' and 'static' in cf)
         loose = fmt == 'video' and 'animation' in cf
         fmt_ok = (not cf) or exact or loose
+        if c.get('strict') and cf and not exact:
+            continue                      # Drive folders name their format exactly
         overlap = len(aw & c['words'])
         live_hit = bool(c['live']) and c['live'] in days
         if bw and not overlap and not live_hit:
@@ -176,3 +178,35 @@ def match_ad(ad, cards):
 def page_id(url):
     m = re.search(r'([0-9a-f]{32})(?:\?|$)', (url or '').replace('-', ''))
     return m.group(1) if m else ''
+
+
+# ---------- Drive final-output folders ----------
+# Folders are titled "TH - Batch 16 Shipping Collage Video", "EN TT - Batch 3 Static",
+# "EN - Batch 1 Festive Angle #2". They are matched with the same rules as the Notion cards,
+# except that a folder may be created after the ad went live (finals are often filed later),
+# so the creation-date rule is not applied. Other folders (raw footage, "20261111 - Batch 1") are ignored.
+def parse_folder(title, fid, created=''):
+    m = re.match(r'\s*(EN|CN|TH|BM)\s*(TT)?\s*-\s*', title or '', re.I)
+    if not m or not re.search(r'Batch\s*\d', title, re.I):
+        return None
+    name = '[TNX PAID%s - %s] %s' % (' TT' if m.group(2) else '', m.group(1).upper(), title[m.end():])
+    c = parse_card(name, 'https://drive.google.com/drive/folders/' + fid)
+    if c:
+        c['name'] = title
+        c['created'] = ''               # no "created before launch" rule for folders
+        c['strict'] = True              # format in the folder name must match the ad's
+        if not c['fmts']:
+            low = title.lower()
+            c['fmts'] = {f for w, f in FORMATS.items() if re.search(r'\b%s\b' % w, low)}
+    return c
+
+
+def load_folders(path='sync/raw/drive_folders.json'):
+    d = json.load(open(path))
+    rows = d.get('files', d) if isinstance(d, dict) else d
+    out = []
+    for r in rows:
+        c = parse_folder(r.get('title', ''), r.get('id', ''), r.get('createdTime', ''))
+        if c:
+            out.append(c)
+    return out
