@@ -36,7 +36,25 @@ h1 span{color:var(--blue);background:var(--white);padding:0 8px;margin-left:8px;
 .filters input[type=search]{flex:1 1 260px;min-width:220px;padding:9px 12px;border:1px solid var(--line);outline:none}
 .filters input[type=search]:focus{border-color:var(--blue)}
 .filters select{padding:8px 10px;border:1px solid var(--line);background:var(--white);max-width:220px}
-.filters #fCampaign{max-width:340px}
+.ms{position:relative}
+.ms-btn{display:block;padding:8px 30px 8px 10px;border:1px solid var(--line);background:var(--white);max-width:220px;min-width:110px;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;color:var(--black);position:relative}
+.ms-btn::after{content:"";position:absolute;right:11px;top:50%;width:6px;height:6px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:translateY(-70%) rotate(45deg)}
+.ms.sel .ms-btn{border-color:var(--blue);color:var(--blue);font-weight:500}
+.ms.open .ms-btn{border-color:var(--blue)}
+#fCampaign .ms-btn{max-width:340px}
+.ms-pop{position:absolute;top:calc(100% + 4px);left:0;width:max-content;max-width:min(440px,calc(100vw - 24px));z-index:20;background:var(--white);border:1px solid var(--line);box-shadow:0 8px 24px rgba(5,11,64,.14);min-width:240px;display:flex;flex-direction:column;max-height:360px}
+.ms-pop[hidden]{display:none}
+.ms-head{display:flex;gap:8px;align-items:center;padding:8px;border-bottom:1px solid var(--line)}
+.ms-head input{flex:1;min-width:0;padding:6px 8px;border:1px solid var(--line);outline:none}
+.ms-head input:focus{border-color:var(--blue)}
+.ms-head .ms-n{flex:1;font-size:12px;color:var(--muted)}
+.ms-clear{border:0;background:none;color:var(--blue);cursor:pointer;padding:4px 2px;font-size:12.5px}
+.ms-list{overflow:auto;padding:4px 0}
+.ms-grp{font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);padding:8px 12px 4px}
+.ms-opt{display:flex;gap:9px;align-items:flex-start;padding:6px 12px;cursor:pointer;font-size:13px;line-height:1.35}
+.ms-opt:hover{background:var(--bg)}
+.ms-opt input{accent-color:var(--blue);margin:2px 0 0;flex:none}
+.ms-opt[hidden]{display:none}
 .chips{display:flex;gap:6px}
 .chip{border:1px solid var(--line);background:var(--white);padding:7px 12px;cursor:pointer}
 .chip.on{background:var(--blue);border-color:var(--blue);color:var(--white)}
@@ -131,12 +149,12 @@ td.n{word-break:break-all;color:var(--muted);max-width:520px}
   <input type="search" id="q" placeholder="Search CR code, angle, campaign, copy…">
   <div class="chips" id="platChips"></div>
   <select id="fStatus"></select>
-  <select id="fGroup"></select>
-  <select id="fMarket"></select>
-  <select id="fCampaign"></select>
-  <select id="fTheme"></select>
-  <select id="fFormat"></select>
-  <select id="fBatch"></select>
+  <div class="ms" id="fGroup"></div>
+  <div class="ms" id="fMarket"></div>
+  <div class="ms" id="fCampaign"></div>
+  <div class="ms" id="fTheme"></div>
+  <div class="ms" id="fFormat"></div>
+  <div class="ms" id="fBatch"></div>
   <select id="fLinks"><option value="">Links: all</option><option value="has">Has Notion/Drive</option><option value="missing">Missing links</option></select>
   <select id="fSort">
     <option value="new">Newest first</option>
@@ -170,6 +188,41 @@ const uniq = (arr) => [...new Set(arr.filter(Boolean))].sort();
 const isActive = a => a.st === 'Active';
 const mkt = a => a.lg ? `${a.mk}-${a.lg}` : a.mk;
 
+// Multi-select filter: a button that opens a checklist. MS[id] holds the ticked values (empty = all).
+const MS = {};
+function makeMulti(id, label, opts){ // opts: [{v, t, grp?}]
+  const el = $(id); MS[id] = new Set(); el.dataset.label = label;
+  let html = '', grp;
+  opts.forEach(o => { if(o.grp !== undefined && o.grp !== grp){ grp = o.grp; html += `<div class="ms-grp">${esc(grp)}</div>`; }
+    html += `<label class="ms-opt" data-t="${esc(String(o.t).toLowerCase())}"><input type="checkbox" value="${esc(o.v)}"><span>${esc(o.t)}</span></label>`; });
+  el.innerHTML = `<button type="button" class="ms-btn"></button><div class="ms-pop" hidden><div class="ms-head">` +
+    (opts.length > 10 ? `<input type="search" placeholder="Find ${esc(label.toLowerCase())}…">` : `<span class="ms-n"></span>`) +
+    `<button type="button" class="ms-clear">Clear</button></div><div class="ms-list">${html}</div></div>`;
+  el._text = Object.fromEntries(opts.map(o => [o.v, o.t]));
+  const pop = el.querySelector('.ms-pop'), find = el.querySelector('.ms-head input');
+  el.querySelector('.ms-btn').onclick = () => { const open = pop.hidden; closeMulti(); if(open){ pop.hidden = false; el.classList.add('open'); pop.style.left = ''; pop.style.right = '';
+    if(pop.getBoundingClientRect().right > innerWidth - 12){ pop.style.left = 'auto'; pop.style.right = '0'; } if(find) find.focus(); } };
+  el.querySelector('.ms-list').onchange = e => { const v = e.target.value; e.target.checked ? MS[id].add(v) : MS[id].delete(v); msLabel(id); shown = PAGE; render(); };
+  el.querySelector('.ms-clear').onclick = () => { clearMulti(id); shown = PAGE; render(); };
+  if(find) find.oninput = () => { const q = find.value.trim().toLowerCase();
+    el.querySelectorAll('.ms-opt').forEach(l => l.hidden = q && !l.dataset.t.includes(q)); };
+  msLabel(id);
+}
+function msLabel(id){
+  const el = $(id), sel = [...MS[id]], lab = el.dataset.label;
+  const txt = !sel.length ? `${lab}: all` : sel.length === 1 ? `${lab}: ${el._text[sel[0]]}` :
+    (id !== 'fCampaign' && sel.length <= 3 && sel.join(', ').length <= 22) ? `${lab}: ${sel.map(v => el._text[v]).join(', ')}` : `${lab}: ${sel.length} selected`;
+  const b = el.querySelector('.ms-btn'); b.textContent = txt; b.title = sel.map(v => el._text[v]).join('\n');
+  el.classList.toggle('sel', sel.length > 0);
+  const n = el.querySelector('.ms-n'); if(n) n.textContent = sel.length ? `${sel.length} selected` : 'Tick one or more';
+}
+function clearMulti(id){ MS[id].clear(); $(id).querySelectorAll('input[type=checkbox]').forEach(c => c.checked = false); msLabel(id); }
+function closeMulti(){ document.querySelectorAll('.ms').forEach(m => { m.querySelector('.ms-pop').hidden = true; m.classList.remove('open'); }); }
+document.addEventListener('click', e => { if(!e.target.closest('.ms')) closeMulti(); });
+document.addEventListener('keydown', e => { if(e.key === 'Escape') closeMulti(); });
+const inMS = (id, v) => !MS[id].size || MS[id].has(v);
+const toOpts = vals => vals.map(v => ({v, t: v}));
+
 function fillSelect(el, label, values){
   el.innerHTML = `<option value="">${label}: all</option>` + values.map(v => `<option>${esc(v)}</option>`).join('');
 }
@@ -185,20 +238,18 @@ function init(){
   ].map(([n, l]) => `<div class="kpi"><b>${n.toLocaleString()}</b><small>${l}</small></div>`).join('');
   $('platChips').innerHTML = ['fb','ig','tt'].map(p => `<button class="chip" data-p="${p}">${PLAT[p]}</button>`).join('');
   fillSelect($('fStatus'), 'Status', ['Active', 'Not active']);
-  fillSelect($('fGroup'), 'Group', uniq(A.map(a => a.g)));
-  fillSelect($('fMarket'), 'Market', uniq(A.map(mkt)));
-  fillSelect($('fTheme'), 'Theme', uniq(A.map(a => a.th)));
+  makeMulti('fGroup', 'Group', toOpts(uniq(A.map(a => a.g))));
+  makeMulti('fMarket', 'Market', toOpts(uniq(A.map(mkt))));
+  makeMulti('fTheme', 'Theme', toOpts(uniq(A.map(a => a.th))));
   // Campaigns: active ones first, then newest; label drops the platform/brand prefix
   const camps = {};
   A.forEach(a => { const c = camps[a.cid] = camps[a.cid] || {id: a.cid, name: a.cn, p: a.p === 'tt' ? 'TikTok' : 'Meta', active: false, last: ''};
     c.active = c.active || isActive(a); if(a.cr > c.last) c.last = a.cr; });
   const short = n => n.replace(/^(fb|tt|ig)\/tnx\//, '');
   const cl = Object.values(camps).sort((x, y) => (y.active - x.active) || y.last.localeCompare(x.last));
-  $('fCampaign').innerHTML = '<option value="">Campaign: all</option>' +
-    ['Active', 'Not active'].map(grp => `<optgroup label="${grp} campaigns">` +
-      cl.filter(c => c.active === (grp === 'Active')).map(c => `<option value="${esc(c.id)}">${esc(c.p + ' · ' + short(c.name))}</option>`).join('') + '</optgroup>').join('');
-  fillSelect($('fFormat'), 'Format', uniq(A.map(a => a.f)));
-  fillSelect($('fBatch'), 'Batch', uniq(A.map(a => a.b)));
+  makeMulti('fCampaign', 'Campaign', cl.map(c => ({v: c.id, t: c.p + ' · ' + short(c.name), grp: (c.active ? 'Active' : 'Not active') + ' campaigns'})));
+  makeMulti('fFormat', 'Format', toOpts(uniq(A.map(a => a.f))));
+  makeMulti('fBatch', 'Batch', toOpts(uniq(A.map(a => a.b))));
   $('fStatus').value = 'Active';
   bind(); render(); renderIssues();
 }
@@ -206,9 +257,9 @@ function init(){
 function bind(){
   $('platChips').onclick = e => { const p = e.target.dataset.p; if(!p) return;
     plat.has(p) ? plat.delete(p) : plat.add(p); e.target.classList.toggle('on'); shown = PAGE; render(); };
-  ['q','fStatus','fGroup','fMarket','fCampaign','fTheme','fFormat','fBatch','fLinks','fSort'].forEach(id =>
+  ['q','fStatus','fLinks','fSort'].forEach(id =>
     $(id).addEventListener(id === 'q' ? 'input' : 'change', () => { shown = PAGE; render(); }));
-  $('reset').onclick = () => { ['q','fStatus','fGroup','fMarket','fCampaign','fTheme','fFormat','fBatch','fLinks'].forEach(id => $(id).value = '');
+  $('reset').onclick = () => { ['q','fStatus','fLinks'].forEach(id => $(id).value = ''); Object.keys(MS).forEach(clearMulti);
     $('fSort').value = 'new'; plat.clear(); document.querySelectorAll('.chip').forEach(c => c.classList.remove('on')); shown = PAGE; render(); };
   $('more').onclick = () => { shown += PAGE; render(); };
   $('tlScale').onclick = e => { const v = e.target.dataset.s; if(!v) return; tlScale = v;
@@ -231,12 +282,11 @@ function bind(){
 }
 
 function filtered(){
-  const q = $('q').value.trim().toLowerCase(), st = $('fStatus').value, g = $('fGroup').value, m = $('fMarket').value,
-        th = $('fTheme').value, f = $('fFormat').value, b = $('fBatch').value, lk = $('fLinks').value, cp = $('fCampaign').value;
+  const q = $('q').value.trim().toLowerCase(), st = $('fStatus').value, lk = $('fLinks').value;
   let r = DATA.ads.filter(a =>
     (!plat.size || plat.has(a.p)) &&
     (!st || (st === 'Active') === isActive(a)) &&
-    (!lk || (lk === 'has') === !!(a.nl || a.dl)) && (!cp || a.cid === cp) && (!g || a.g === g) && (!m || mkt(a) === m) && (!th || a.th === th) && (!f || a.f === f) && (!b || a.b === b) &&
+    (!lk || (lk === 'has') === !!(a.nl || a.dl)) && inMS('fCampaign', a.cid) && inMS('fGroup', a.g) && inMS('fMarket', mkt(a)) && inMS('fTheme', a.th) && inMS('fFormat', a.f) && inMS('fBatch', a.b) &&
     (!q || norm([a.c, a.an, a.hk, a.b, a.h, a.t, a.n, a.th, a.fw, a.cn, decodeURIComponent((a.nl||'').split('/').pop().split('?')[0])].join(' ')).includes(norm(q))));
   const s = $('fSort').value;
   const crNum = c => { const m = /CR(\d+)(?:_(\d+))?/.exec(c || ''); return m ? (+m[1]) * 1000 + (+(m[2] || 0)) : 1e9; };
