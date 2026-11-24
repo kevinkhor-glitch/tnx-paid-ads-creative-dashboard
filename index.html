@@ -237,7 +237,7 @@ function filtered(){
     (!plat.size || plat.has(a.p)) &&
     (!st || (st === 'Active') === isActive(a)) &&
     (!lk || (lk === 'has') === !!(a.nl || a.dl)) && (!cp || a.cid === cp) && (!g || a.g === g) && (!m || mkt(a) === m) && (!th || a.th === th) && (!f || a.f === f) && (!b || a.b === b) &&
-    (!q || [a.c, a.an, a.hk, a.b, a.h, a.t, a.n, a.th, a.fw, a.cn].join(' ').toLowerCase().includes(q)));
+    (!q || norm([a.c, a.an, a.hk, a.b, a.h, a.t, a.n, a.th, a.fw, a.cn, decodeURIComponent((a.nl||'').split('/').pop().split('?')[0])].join(' ')).includes(norm(q))));
   const s = $('fSort').value;
   const crNum = c => { const m = /CR(\d+)(?:_(\d+))?/.exec(c || ''); return m ? (+m[1]) * 1000 + (+(m[2] || 0)) : 1e9; };
   r.sort(s === 'old' ? (x, y) => x.cr.localeCompare(y.cr) : s === 'cr' ? (x, y) => crNum(x.c) - crNum(y.c) : (x, y) => y.cr.localeCompare(x.cr));
@@ -297,6 +297,7 @@ function bucket(d){ return tlScale === 'week' ? weekStart(d) : d.slice(0,7) + '-
 function nextBucket(b){ const x = new Date(b + 'T00:00:00Z'); if(tlScale === 'week') x.setUTCDate(x.getUTCDate() + 7); else x.setUTCMonth(x.getUTCMonth() + 1); return x.toISOString().slice(0,10); }
 function bucketLabel(b){ if(tlScale === 'month'){ const [y,m] = b.split('-'); return `${MON[+m-1]} ${y}`; } return 'Week of ' + fmtDate(b); }
 
+const norm = s => (s||'').toLowerCase().replace(/[-_]+/g,' ').replace(/\s+/g,' ');
 function renderTimeline(r){
   if(!r.length){ $('tlChart').innerHTML = '<div class="empty">No ads match these filters.</div>'; $('tlList').innerHTML = ''; $('tlSub').textContent = ''; return; }
   const counts = {}; r.forEach(a => { const b = bucket(a.cr); counts[b] = (counts[b] || 0) + 1; });
