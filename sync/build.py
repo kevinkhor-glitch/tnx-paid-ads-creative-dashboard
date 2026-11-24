@@ -559,6 +559,36 @@ for why, crs in sorted(unmatched.items(), key=lambda x: -len(x[1])):
     print('  no Notion brief found (%d): %s -> %s' % (len(crs), why, ', '.join(sorted(set(crs))[:8])))
 for grp, crs in sorted(no_folder.items()):
     print('  no Drive folder found: %s -> %s' % (grp, ', '.join(sorted(set(crs))[:8])))
+# ---------- Keep what the dashboard already has (the sync only adds and updates) ----------
+# 1. A link an ad already had is kept when this run finds none for it (a Notion card or Drive
+#    folder renamed/moved, a Links-sheet row edited away). Exception: the ad's CR code changed
+#    (renamed ad), because the old link belonged to the old code.
+# 2. An ad that was on the dashboard but is no longer returned by Meta/TikTok (deleted there)
+#    stays on the dashboard with status "Removed from platform".
+_prev_path = os.path.join(ROOT, 'data', 'ads.json')
+_prev = json.load(open(_prev_path)).get('ads', []) if os.path.exists(_prev_path) else []
+_prev_by = {a['id']: a for a in _prev}
+kept_links = kept_ads = 0
+_now_ids = set()
+for a in dash:
+    _now_ids.add(a['id'])
+    p = _prev_by.get(a['id'])
+    if not p or (p.get('c') or '') != (a.get('c') or ''):
+        continue
+    for f, flag in (('nl', 'na'), ('dl', 'da')):
+        if not a.get(f) and p.get(f):
+            a[f] = p[f]
+            if p.get(flag): a[flag] = 1
+            kept_links += 1
+for p in _prev:
+    if p['id'] not in _now_ids:
+        q = dict(p); q['st'] = 'Removed from platform'
+        dash.append(q); kept_ads += 1
+print('kept from previous dashboard: %d links, %d ads no longer returned by Meta/TikTok' % (kept_links, kept_ads))
+if kept_ads > 10:
+    print('WARNING: %d ads were not returned by Meta/TikTok this run. Probably an incomplete pull, not deletions. '
+          'Do not push; re-run the pulls.' % kept_ads)
+
 out_d = {'synced': RUN_AT, 'ads': dash,
          'issues': [dict(id=i[0], p=i[1], n=i[2], issue=i[3], detail=i[4]) for i in issues]}
 import os
