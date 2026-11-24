@@ -15,6 +15,12 @@ CR codes, so an ad is matched on what both sides share:
      equals the most recent such card wins (e.g. "Batch 33 #1" vs "#2")
   6. if the ad's batch has no letter but several lettered cards fit equally
      (Batch 15a / 15b), it is reported as ambiguous
+  7. split cards: a batch's creatives are sometimes launched in waves and the card
+     split into "#1" (first launch) and "#2", "#3" (creatives launched later). Each
+     creative (CR code, else angle) gets the wave of the day it FIRST went live within
+     its language + batch + format; re-launches of the same creative keep that wave.
+     Wave N goes to card #N (or letter a, b, c when the ad's batch has no letter).
+     Call assign_waves(ads) once before matching.
 
 Only a clear winner is returned. Ties and weak matches are reported as
 ambiguous and left unlinked rather than guessed.
@@ -51,9 +57,11 @@ def parse_card(name, url, created='', live=''):
         if not bm:
             return None
         batches[lang] = (int(bm.group(1)), bm.group(2).lower())
+    pm = re.search(r'#\s*(\d+)', rest)
+    part = int(pm.group(1)) if pm else None
     tail = re.split(r'\s+-\s+', rest.strip())[-1].lower()
     fmts = {FORMATS[w] for w in re.findall(r'[a-z]+', tail) if w in FORMATS}
-    return dict(name=name, url=url, created=created or '', live=live or '', tt=bool(m.group(1)), lang=lang,
+    return dict(name=name, url=url, created=created or '', live=live or '', tt=bool(m.group(1)), lang=lang, part=part,
                 batches=batches, fmts=fmts, words=words(rest))
 
 
@@ -74,6 +82,42 @@ def ad_batch(batch):
     return (int(m.group(1)), m.group(2)) if m else None
 
 
+def batch_words(batch):
+    """Words of an ad's batch segment beyond the number: 'festive-niche-batch-1-festive-angle' -> {festive, angle}."""
+    bw = words(re.sub(r'batch-?\d+[a-z]?', ' ', (batch or '').lower()))
+    return {w for w in bw if not re.match(r'^(sprint|old)\d*$', w) and w not in ('niche', 'gen')}
+
+
+def _fmt_family(f):
+    f = FORMATS.get((f or '').lower(), (f or '').lower())
+    return 'static' if f in ('static', 'carousel') else f
+
+
+def assign_waves(ads):
+    """Set ad['_wave'] = 1, 2, ... : the launch wave of the ad's creative within its batch."""
+    first = {}                                  # (group, creative) -> first launch day
+    def key(a):
+        ab = ad_batch(a.get('b'))
+        if not ab:
+            return None, None
+        g = (a.get('p') == 'tt', (a.get('lg') or '').upper(), ab, frozenset(batch_words(a.get('b'))),
+             _fmt_family(a.get('f')))
+        return g, (a.get('c') or a.get('an') or a.get('n'))
+    for a in ads:
+        g, cr = key(a)
+        if g and a.get('cr'):
+            k = (g, cr)
+            first[k] = min(first.get(k, a['cr']), a['cr'])
+    days = {}
+    for (g, cr), d in first.items():
+        days.setdefault(g, set()).add(d)
+    order = {g: sorted(ds) for g, ds in days.items()}
+    for a in ads:
+        g, cr = key(a)
+        if g and (g, cr) in first:
+            a['_wave'] = order[g].index(first[(g, cr)]) + 1
+
+
 def match_ad(ad, cards):
     """ad: dashboard row (p, lg, b, f, an, hk, cr). Returns (card, reason) or (None, reason)."""
     ab = ad_batch(ad.get('b'))
@@ -82,8 +126,7 @@ def match_ad(ad, cards):
     lang = (ad.get('lg') or '').upper()
     tt = ad.get('p') == 'tt'
     fmt = FORMATS.get((ad.get('f') or '').lower(), (ad.get('f') or '').lower())
-    bw = words(re.sub(r'batch-?\d+[a-z]?', ' ', (ad.get('b') or '').lower()) .replace('sprint', ' '))
-    bw = {w for w in bw if not re.match(r'^(sprint|old)\d*$', w)}
+    bw = batch_words(ad.get('b'))
     aw = bw | words(ad.get('an') or '')
     day = ad.get('cr') or ''
     days = {day, ad.get('ld') or ''} - {''}
@@ -106,8 +149,13 @@ def match_ad(ad, cards):
         live_hit = bool(c['live']) and c['live'] in days
         if bw and not overlap and not live_hit:
             continue                      # ad batch has its own words, none in this title
+        wave = ad.get('_wave')
+        part_adj = 0
+        cpart = c.get('part') or (ord(sfx) - 96 if sfx and not ab[1] else None)   # 15a/15b split like #1/#2
+        if cpart and wave:
+            part_adj = 5 if cpart == wave else -5
         score = overlap * 3 + (2 if exact else 1 if loose else 0) - (3 if not fmt_ok else 0) \
-            + (1 if sfx and sfx == ab[1] else 0) + (4 if live_hit else 0)
+            + (1 if sfx and sfx == ab[1] else 0) + (4 if live_hit else 0) + part_adj
         cands.append((score, c['created'], c, sfx, live_hit))
     if not cands:
         return None, 'no card with this language and batch number'
