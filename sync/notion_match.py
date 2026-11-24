@@ -129,6 +129,7 @@ def match_ad(ad, cards):
     bw = batch_words(ad.get('b'))
     aw = bw | words(ad.get('an') or '')
     day = ad.get('cr') or ''
+    anim = bool(re.search(r'animation', ((ad.get('b') or '') + ' ' + (ad.get('an') or '')).lower()))
     days = {day, ad.get('ld') or ''} - {''}
     cands = []
     for c in cards:
@@ -156,7 +157,9 @@ def match_ad(ad, cards):
         cpart = c.get('part') or (ord(sfx) - 96 if sfx and not ab[1] else None)   # 15a/15b split like #1/#2
         if cpart and wave:
             part_adj = 5 if cpart == wave else -5
-        score = overlap * 3 + (2 if exact else 1 if loose else 0) - (3 if not fmt_ok else 0) \
+        # an ad named "...-animations-..." belongs to an Animations card, not a plain Video one
+        hint = 3 if (anim and 'animation' in cf) else (-2 if anim and cf and 'animation' not in cf else 0)
+        score = hint * 2 + overlap * 3 + (2 if exact else 1 if loose else 0) - (3 if not fmt_ok else 0) \
             + (1 if sfx and sfx == ab[1] else 0) + (4 if live_hit else 0) + part_adj
         cands.append((score, c['created'], c, sfx, live_hit))
     if not cands:
