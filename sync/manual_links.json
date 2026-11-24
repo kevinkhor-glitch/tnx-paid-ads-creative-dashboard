@@ -1,0 +1,7 @@
+{
+  "_note": "Links added by hand for ads the Links sheet, Notion and Drive-folder matching do not cover. Read by build.py on every sync. Precedence: Links sheet > this file > automatic Notion/Drive matching. Keys: ad_id, or cr + market (e.g. MY-EN), or cr alone.",
+  "links": [
+    {"cr": "CR87", "market": "MY-EN", "drive": "https://drive.google.com/drive/folders/19nRyfzwOb0FXOK56QhxHI31DFQWZZrd7",
+     "why": "Final Kendric Promo 2 EN videos live in 'Year End Promo 2 Kendric', not an 'EN - Batch 31' folder (added 2026-11-24)"}
+  ]
+}

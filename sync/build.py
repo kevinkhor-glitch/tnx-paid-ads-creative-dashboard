@@ -508,6 +508,24 @@ from notion_match import load_cards, load_folders, match_ad, assign_waves
 NOTION_FROM = '2026-10-01'   # card titles follow "[TNX PAID - XX] Batch N - Angle - Format" from here on
 cards = load_cards(D + 'notion_cards.json') if os.path.exists(D + 'notion_cards.json') else []
 folders = load_folders(D + 'drive_folders.json') if os.path.exists(D + 'drive_folders.json') else []
+# Hand-added links (sync/manual_links.json): used when the Links sheet has none for that field.
+_ml = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'manual_links.json'))).get('links', []) \
+    if os.path.exists(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'manual_links.json')) else []
+def manual_for(a):
+    mk = f"{a['mk']}-{a['lg']}" if a['lg'] else a['mk']
+    base = re.sub(r'_\d+$', '', a['c'] or '').upper()
+    for m in _ml:
+        if m.get('ad_id') and m['ad_id'] == a['id']:
+            return m
+    for m in _ml:
+        cr = (m.get('cr') or '').upper()
+        if cr and m.get('market') and m['market'].upper() == mk.upper() and cr in ((a['c'] or '').upper(), base):
+            return m
+    for m in _ml:
+        cr = (m.get('cr') or '').upper()
+        if cr and not m.get('market') and cr in ((a['c'] or '').upper(), base):
+            return m
+    return {}
 assign_waves(dash)
 n_linked = n_auto = n_dauto = 0
 unmatched = {}
@@ -516,6 +534,8 @@ for a in dash:
     mk = f"{a['mk']}-{a['lg']}" if a['lg'] else a['mk']
     lk = link_for(a['id'], a['c'], mk)
     a['nl'] = lk.get('notion', ''); a['dl'] = lk.get('drive', '')
+    ml = manual_for(a)
+    a['nl'] = a['nl'] or ml.get('notion', ''); a['dl'] = a['dl'] or ml.get('drive', '')
     if not a['nl'] and cards and a['cr'] >= NOTION_FROM:
         card, why = match_ad(a, cards)
         if card:
