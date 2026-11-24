@@ -326,7 +326,7 @@ function card(a){
         ${(a.t || '').length > 220 ? '<button class="more">Show full copy</button>' : ''}
       </div>
       <div class="foot">
-        ${a.nl ? `<a class="nlink" href="${esc(a.nl)}" target="_blank" rel="noopener">Notion brief</a>` : ''}
+        ${a.nl ? `<a class="nlink" href="${esc(a.nl)}" target="_blank" rel="noopener"${a.na ? ' title="Matched automatically from the Notion card title. Add a row in the Links sheet to override."' : ''}>Notion brief</a>` : ''}
         ${a.dl ? `<a href="${esc(a.dl)}" target="_blank" rel="noopener">Drive folder</a>` : ''}
         ${!a.nl && !a.dl ? '<span class="missing">No Notion / Drive link yet</span>' : ''}
         ${a.am ? `<a href="${esc(a.am)}" target="_blank" rel="noopener">Ads Manager</a>` : ''}

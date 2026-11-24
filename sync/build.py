@@ -500,13 +500,32 @@ for r in tt_rows:
         img=(f"images/tt_{r['ad_id']}.jpg" if os.path.exists(os.path.join(ROOT, 'images', f"tt_{r['ad_id']}.jpg")) else ''),
         v='VIDEO' in r['tt_format'], lr=False, ct=r['tt_format'],
         cid=r['campaign_id'], cn=r['campaign'], n=r['ad_name'], files=r['files'], nc=r['n_creatives'], am=''))
-n_linked = 0
+# Notion briefs: ads with no Notion link in the Links sheet get their "[TNX PAID - XX] Batch N ..."
+# card from the Marketing DB (sync/raw/notion_cards.json, see SYNC.md step 5b). Links sheet wins.
+import sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from notion_match import load_cards, match_ad
+NOTION_FROM = '2026-10-01'   # card titles follow "[TNX PAID - XX] Batch N - Angle - Format" from here on
+cards = load_cards(D + 'notion_cards.json') if os.path.exists(D + 'notion_cards.json') else []
+n_linked = n_auto = 0
+unmatched = {}
 for a in dash:
     mk = f"{a['mk']}-{a['lg']}" if a['lg'] else a['mk']
     lk = link_for(a['id'], a['c'], mk)
     a['nl'] = lk.get('notion', ''); a['dl'] = lk.get('drive', '')
+    if not a['nl'] and cards and a['cr'] >= NOTION_FROM:
+        card, why = match_ad(a, cards)
+        if card:
+            a['nl'] = card['url'].replace('https://app.notion.com/', 'https://app.notion.com/p/') \
+                if '/p/' not in card['url'] else card['url']
+            a['na'] = 1          # auto-matched from Notion (shown as such on the card)
+            n_auto += 1
+        else:
+            unmatched.setdefault(why[:140], []).append(a['c'] or a['n'][-40:])
     n_linked += bool(a['nl'] or a['dl'])
-print('ads with links', n_linked)
+print('ads with links', n_linked, '(of which Notion auto-matched:', n_auto, ')')
+for why, crs in sorted(unmatched.items(), key=lambda x: -len(x[1])):
+    print('  no Notion brief found (%d): %s -> %s' % (len(crs), why, ', '.join(sorted(set(crs))[:8])))
 out_d = {'synced': RUN_AT, 'ads': dash,
          'issues': [dict(id=i[0], p=i[1], n=i[2], issue=i[3], detail=i[4]) for i in issues]}
 import os
